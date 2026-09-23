@@ -151,6 +151,19 @@
   .settle-net { text-align: center; padding: 13px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 15px; font-weight: 500; }
   .settle-net strong { font-size: 19px; margin-left: 4px; }
   .settle-net.even { background: var(--ok-bg); color: var(--ok-ink); }
+
+  /* 刪除按鈕 */
+  .del-btn {
+    border: none; background: none; color: #b3897c; padding: 4px; margin-left: 6px;
+    display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .del-btn svg { width: 16px; height: 16px; display: block; }
+  .stop-row { align-items: flex-start; }
+  .stop-row-inner { display: flex; flex: 1; justify-content: space-between; align-items: center; }
+  .unscheduled-chip-wrap { display: inline-flex; align-items: center; background: var(--accent-soft); border-radius: 20px; padding: 2px 4px 2px 12px; gap: 4px; }
+  .unscheduled-chip-wrap .unscheduled-chip { background: none; padding: 0; border-radius: 0; }
+  .unscheduled-chip-wrap .del-btn { color: #a9776b; }
+
 </style>
 </head>
 <body>
@@ -366,7 +379,8 @@
     flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 5h13l-3 4 3 4H5"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.6 2.6L16.2 9"/></svg>',
     compare: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="4" y="10.5" width="5" height="9.5"/><rect x="14.5" y="5.5" width="5" height="14.5"/></svg>',
-    cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20.5 8H6"/><circle cx="9.5" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>'
+    cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20.5 8H6"/><circle cx="9.5" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6M14 11v6"/></svg>'
   };
   function mountIcons() {
     document.getElementById('icon-money').innerHTML = ICONS.money;
@@ -506,11 +520,20 @@
     return res.groups.map(g =>
       '<div class="day-group"><div class="day-header">' + esc(g.date) + '</div>' +
       g.items.map(it =>
-        '<div class="stop-row"><div class="stop-main">' +
+        '<div class="stop-row"><div class="stop-row-inner"><div class="stop-main">' +
         '<div class="stop-loc">' + esc(it.item) + '　' + esc(it.amount) + esc(it.currency) + '</div>' +
-        '<div class="stop-detail">付款人 ' + esc(it.payer) + '　' + esc(it.type) + '</div></div></div>'
+        '<div class="stop-detail">付款人 ' + esc(it.payer) + '　' + esc(it.type) + '</div></div>' +
+        '<button class="del-btn" onclick="deleteAccountingRow(' + it.row + ')">' + ICONS.trash + '</button>' +
+        '</div></div>'
       ).join('') + '</div>'
     ).join('');
+  }
+
+  function deleteAccountingRow(row) {
+    if (!confirm('確定要刪除這筆記帳資料嗎？')) return;
+    jsonp({ action: 'deleteAccountingRow', row: row })
+      .then(res => { loadRecentAccounting(); loadSettlement(); })
+      .catch(err => { alert('刪除失敗：' + err.message); });
   }
 
   function loadRecentAccounting() {
@@ -571,7 +594,16 @@
       ? '<div class="stop-time">' + esc(s.time) + '</div>'
       : '<div class="stop-time empty">・</div>';
     return '<div class="stop-row">' + timeHtml +
-      '<div class="stop-main"><div class="stop-loc">' + esc(s.location) + '</div>' + detailHtml + '</div></div>';
+      '<div class="stop-row-inner"><div class="stop-main"><div class="stop-loc">' + esc(s.location) + '</div>' + detailHtml + '</div>' +
+      '<button class="del-btn" onclick="deleteItineraryRow(' + s.row + ')">' + ICONS.trash + '</button>' +
+      '</div></div>';
+  }
+
+  function deleteItineraryRow(row) {
+    if (!confirm('確定要刪除這筆行程嗎？')) return;
+    jsonp({ action: 'deleteItineraryRow', row: row })
+      .then(res => { loadItineraryStructured(); })
+      .catch(err => { alert('刪除失敗：' + err.message); });
   }
 
   function loadItineraryStructured() {
@@ -597,9 +629,11 @@
       } else {
         document.getElementById('itineraryUnscheduled').innerHTML = res.unscheduledGroups.map(g =>
           '<div class="day-group"><div class="day-header">' + esc(g.region) + '</div>' +
-          '<div class="chip-wrap">' + g.items.map(it => it.map
-            ? '<a class="unscheduled-chip" href="' + esc(it.map) + '" target="_blank" rel="noopener">' + esc(it.location) + '</a>'
-            : '<span class="unscheduled-chip">' + esc(it.location) + '</span>'
+          '<div class="chip-wrap">' + g.items.map(it =>
+            '<span class="unscheduled-chip-wrap">' + (it.map
+              ? '<a class="unscheduled-chip" href="' + esc(it.map) + '" target="_blank" rel="noopener">' + esc(it.location) + '</a>'
+              : '<span class="unscheduled-chip">' + esc(it.location) + '</span>') +
+            '<button class="del-btn" onclick="deleteItineraryRow(' + it.row + ')">' + ICONS.trash + '</button></span>'
           ).join('') + '</div></div>'
         ).join('');
       }
@@ -668,22 +702,31 @@
   }
 
   /* ---------- 購物：查看 ---------- */
+  function shoppingRow(name) {
+    return '<div class="stop-row"><div class="stop-row-inner"><div class="stop-main"><div class="stop-loc">' + esc(name) + '</div></div>' +
+      '<button class="del-btn" onclick="deleteShoppingItem(\'' + esc(name).replace(/'/g, "\\'") + '\')">' + ICONS.trash + '</button></div></div>';
+  }
   function renderShopping(res) {
     if (!res.ok) return '<p class="empty-note">' + esc(res.message) + '</p>';
     let html = '';
     if (res.dated && res.dated.length) {
       html += res.dated.map(g =>
         '<div class="day-group"><div class="day-header">' + esc(g.date) + '</div>' +
-        g.items.map(name => '<div class="stop-row"><div class="stop-main"><div class="stop-loc">' + esc(name) + '</div></div></div>').join('') +
-        '</div>'
+        g.items.map(shoppingRow).join('') + '</div>'
       ).join('');
     }
     if (res.undated && res.undated.length) {
       html += '<div class="day-group"><div class="day-header">未指定日期</div>' +
-        res.undated.map(name => '<div class="stop-row"><div class="stop-main"><div class="stop-loc">' + esc(name) + '</div></div></div>').join('') +
-        '</div>';
+        res.undated.map(shoppingRow).join('') + '</div>';
     }
     return html || '<p class="empty-note">購物清單目前是空的。</p>';
+  }
+
+  function deleteShoppingItem(item) {
+    if (!confirm('確定要刪除「' + item + '」嗎？（同名的所有比價記錄也會一起刪除）')) return;
+    jsonp({ action: 'deleteShoppingItem', item: item })
+      .then(res => { loadShoppingStructured(); })
+      .catch(err => { alert('刪除失敗：' + err.message); });
   }
 
   function loadShoppingStructured() {
