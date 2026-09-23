@@ -71,8 +71,7 @@
   </div>
 
 <script>
-  // ⚠️ 請把下面這個網址換成你自己在 Apps Script 部署出來的網址（結尾是 /exec）
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwAOY2-Lzuu5MoFgAg6f-QsVOKuw7dpEaejQ0rboICvT2o4TlcJIN5Wimc3tUgsHDC4/exec';
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbzCwqpZwNApZemLgDqQRFckKICMFXnbj3Fuh5UOgqxoYyoZ774Diiqupt9j4kEC9r-v/exec';
 
   let payer = '脆';
   let currency = '日幣';
@@ -95,7 +94,6 @@
     document.getElementById('specifiedBox').classList.toggle('hidden', type !== '指定');
   }
 
-  // JSONP 呼叫工具：用 <script> 標籤繞過跨網域限制，向 Apps Script 要資料
   function jsonp(params) {
     return new Promise((resolve, reject) => {
       const callbackName = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
