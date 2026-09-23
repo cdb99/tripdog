@@ -39,10 +39,10 @@
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 18px; margin-bottom: 16px; }
   .card-title { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
   .badge {
-    width: 26px; height: 26px; min-width: 26px; border-radius: 50%; background: var(--accent-soft);
+    width: 30px; height: 30px; min-width: 30px; border-radius: 50%; background: var(--accent-soft);
     color: var(--accent); display: flex; align-items: center; justify-content: center;
-    font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 13px;
   }
+  .badge svg { width: 16px; height: 16px; display: block; }
   .card-title h2 { font-size: 14.5px; margin: 0; font-weight: 500; letter-spacing: 0.03em; color: var(--ink); }
 
   label { display: block; font-size: 12.5px; color: var(--muted); margin: 14px 0 6px; letter-spacing: 0.02em; }
@@ -71,10 +71,6 @@
   .result.ok { background: var(--ok-bg); color: var(--ok-ink); }
   .result.err { background: var(--err-bg); color: var(--err-ink); }
 
-  pre.summary {
-    white-space: pre-wrap; font-size: 13.5px; margin: 0; font-family: inherit; line-height: 1.7; color: var(--ink);
-  }
-
   .refresh-btn {
     font-size: 12px; color: var(--accent); background: none; border: none;
     text-decoration: underline; padding: 0; letter-spacing: 0.02em; font-family: inherit;
@@ -82,7 +78,6 @@
   .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
   .card-head .card-title { margin-bottom: 0; }
 
-  /* 分頁內部的「新增／查看」子切換 */
   .subtabs { display: flex; gap: 6px; margin-bottom: 16px; }
   .subtabs button {
     flex: 1; padding: 10px 6px; border: 1px solid var(--line); border-radius: 3px;
@@ -104,10 +99,10 @@
     font-family: inherit; letter-spacing: 0.02em;
   }
   nav.tabbar .tab-badge {
-    width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 12.5px; color: var(--muted);
-    border: 1px solid var(--line);
+    width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line); color: var(--muted);
   }
+  nav.tabbar .tab-badge svg { width: 14px; height: 14px; display: block; }
   nav.tabbar button.active { color: var(--accent); font-weight: 500; }
   nav.tabbar button.active .tab-badge { background: var(--accent); color: #faf8f2; border-color: var(--accent); }
 
@@ -118,7 +113,7 @@
   .exchange-row input { flex: 1; }
   .exchange-unit { font-size: 13px; color: var(--muted); white-space: nowrap; }
 
-  /* 行程結構化查看 */
+  /* 結構化列表（行程 / 記帳紀錄 / 購物清單 共用） */
   .day-group { margin-bottom: 18px; }
   .day-group:last-child { margin-bottom: 0; }
   .day-header {
@@ -138,10 +133,21 @@
   .stop-detail a { color: var(--accent); }
   .empty-note { font-size: 13px; color: var(--muted); padding: 6px 0; }
 
+  .chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
   .unscheduled-chip {
-    display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; margin: 0 6px 6px 0;
+    display: inline-flex; align-items: center; padding: 6px 10px;
     background: var(--accent-soft); border-radius: 20px; font-size: 12.5px; color: var(--ink);
   }
+
+  /* 結算專用 */
+  .settle-grid { display: flex; gap: 10px; margin-bottom: 14px; }
+  .settle-person { flex: 1; border: 1px solid var(--line); border-radius: 4px; padding: 12px; background: #fff; }
+  .settle-name { font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 8px; }
+  .settle-nums div { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 3px 0; }
+  .settle-nums b { color: var(--ink); font-size: 13px; font-weight: 500; }
+  .settle-net { text-align: center; padding: 13px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 13.5px; }
+  .settle-net strong { font-size: 17px; margin-left: 4px; }
+  .settle-net.even { background: var(--ok-bg); color: var(--ok-ink); }
 </style>
 </head>
 <body>
@@ -159,7 +165,7 @@
 
     <div id="money-add" class="subview active">
       <div class="card">
-        <div class="card-title"><span class="badge">帳</span><h2>新增記帳</h2></div>
+        <div class="card-title"><span class="badge" id="icon-money"></span><h2>新增記帳</h2></div>
         <label>付款人</label>
         <div class="btn-row" id="payerGroup">
           <button type="button" data-val="脆" class="active" onclick="selectGroup(this,'payerGroup',v=>payer=v)">脆</button>
@@ -198,18 +204,18 @@
     <div id="money-view" class="subview">
       <div class="card">
         <div class="card-head">
-          <div class="card-title"><span class="badge">結</span><h2>目前結算</h2></div>
+          <div class="card-title"><span class="badge" id="icon-chart"></span><h2>目前結算</h2></div>
           <button class="refresh-btn" onclick="loadSettlement()">重新整理</button>
         </div>
-        <pre class="summary" id="settlementBox">載入中...</pre>
+        <div id="settlementBox"><p class="empty-note">載入中...</p></div>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <div class="card-title"><span class="badge">錄</span><h2>最近記帳紀錄</h2></div>
+          <div class="card-title"><span class="badge" id="icon-receipt"></span><h2>最近記帳紀錄</h2></div>
           <button class="refresh-btn" onclick="loadRecentAccounting()">重新整理</button>
         </div>
-        <pre class="summary" id="recentBox">載入中...</pre>
+        <div id="recentBox"><p class="empty-note">載入中...</p></div>
       </div>
     </div>
   </section>
@@ -223,7 +229,7 @@
 
     <div id="trip-add" class="subview active">
       <div class="card">
-        <div class="card-title"><span class="badge">程</span><h2>新增行程</h2></div>
+        <div class="card-title"><span class="badge" id="icon-calendar"></span><h2>新增行程</h2></div>
         <label>地點</label>
         <input type="text" id="t-location" placeholder="例：黑門市場">
 
@@ -244,14 +250,14 @@
     <div id="trip-view" class="subview">
       <div class="card">
         <div class="card-head">
-          <div class="card-title"><span class="badge">覽</span><h2>整體行程</h2></div>
+          <div class="card-title"><span class="badge" id="icon-map"></span><h2>整體行程</h2></div>
           <button class="refresh-btn" onclick="loadItineraryStructured()">重新整理</button>
         </div>
         <div id="itineraryDays"><p class="empty-note">載入中...</p></div>
       </div>
 
       <div class="card">
-        <div class="card-title"><span class="badge">願</span><h2>尚未安排</h2></div>
+        <div class="card-title"><span class="badge" id="icon-flag"></span><h2>尚未安排（依地區）</h2></div>
         <div id="itineraryUnscheduled"><p class="empty-note">載入中...</p></div>
       </div>
     </div>
@@ -266,7 +272,7 @@
 
     <div id="shop-add" class="subview active">
       <div class="card">
-        <div class="card-title"><span class="badge">買</span><h2>加入購物清單</h2></div>
+        <div class="card-title"><span class="badge" id="icon-bag"></span><h2>加入購物清單</h2></div>
         <label>物品</label>
         <input type="text" id="s-item" placeholder="例：面膜">
 
@@ -278,7 +284,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title"><span class="badge">已</span><h2>標記已買</h2></div>
+        <div class="card-title"><span class="badge" id="icon-check"></span><h2>標記已買</h2></div>
         <label>物品名稱</label>
         <input type="text" id="s-boughtItem" placeholder="要跟清單上的名稱一致">
         <button class="primary-btn" id="s-boughtBtn" onclick="submitBought()">標記已買</button>
@@ -286,7 +292,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title"><span class="badge">比</span><h2>記一筆比價</h2></div>
+        <div class="card-title"><span class="badge" id="icon-compare"></span><h2>記一筆比價</h2></div>
         <label>物品</label>
         <input type="text" id="s-cItem" placeholder="例：合利他命">
         <label>通路</label>
@@ -301,10 +307,10 @@
     <div id="shop-view" class="subview">
       <div class="card">
         <div class="card-head">
-          <div class="card-title"><span class="badge">單</span><h2>目前購物清單</h2></div>
-          <button class="refresh-btn" onclick="loadShoppingList()">重新整理</button>
+          <div class="card-title"><span class="badge" id="icon-cart"></span><h2>目前購物清單</h2></div>
+          <button class="refresh-btn" onclick="loadShoppingStructured()">重新整理</button>
         </div>
-        <pre class="summary" id="shoppingBox">載入中...</pre>
+        <div id="shoppingBox"><p class="empty-note">載入中...</p></div>
       </div>
     </div>
   </section>
@@ -312,7 +318,7 @@
   <!-- ============ 匯率 ============ -->
   <section id="view-exchange" class="view">
     <div class="card">
-      <div class="card-title"><span class="badge">換</span><h2>匯率換算</h2></div>
+      <div class="card-title"><span class="badge" id="icon-exchange"></span><h2>匯率換算</h2></div>
       <div class="btn-row" id="exFromGroup">
         <button type="button" data-val="日" class="active" onclick="selectGroup(this,'exFromGroup',v=>exFrom=v)">日幣 →</button>
         <button type="button" data-val="台" onclick="selectGroup(this,'exFromGroup',v=>exFrom=v)">台幣 →</button>
@@ -328,22 +334,54 @@
 
   <nav class="tabbar">
     <button type="button" class="active" data-view="view-money" onclick="switchTab(this)">
-      <span class="tab-badge">帳</span>記帳
+      <span class="tab-badge" id="tab-money"></span>記帳
     </button>
     <button type="button" data-view="view-trip" onclick="switchTab(this)">
-      <span class="tab-badge">程</span>行程
+      <span class="tab-badge" id="tab-trip"></span>行程
     </button>
     <button type="button" data-view="view-shop" onclick="switchTab(this)">
-      <span class="tab-badge">買</span>購物
+      <span class="tab-badge" id="tab-shop"></span>購物
     </button>
     <button type="button" data-view="view-exchange" onclick="switchTab(this)">
-      <span class="tab-badge">換</span>匯率
+      <span class="tab-badge" id="tab-exchange"></span>匯率
     </button>
   </nav>
 
 <script>
   // 換成你自己在 Apps Script 部署出來的網址（結尾是 /exec）
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbzCwqpZwNApZemLgDqQRFckKICMFXnbj3Fuh5UOgqxoYyoZ774Diiqupt9j4kEC9r-v/exec';
+
+  /* ---------- 單色線條圖示（不用 emoji，全部用主色系 currentColor） ---------- */
+  const ICONS = {
+    money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 8H6a3 3 0 1 1 0-6h11a1 1 0 0 1 1 1v5Z"/><path d="M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6"/><circle cx="17" cy="13" r="1.1" fill="currentColor" stroke="none"/></svg>',
+    calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17"/><path d="M8 3v4M16 3v4"/></svg>',
+    bag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l-1 11.5a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6.5 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>',
+    exchange: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12M15 4l3 4-3 4"/><path d="M18 16H6M9 20l-3-4 3-4"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V4M16 20v-6"/><path d="M3 20h18"/></svg>',
+    receipt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2-2 1.2V3Z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
+    map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M9 4 4 6.2v13.8l5-2.2 6 2.2 5-2.2V3.8l-5 2.2-6-2.2Z"/><path d="M9 4v13.8M15 6.2V20"/></svg>',
+    flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 5h13l-3 4 3 4H5"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.6 2.6L16.2 9"/></svg>',
+    compare: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="4" y="10.5" width="5" height="9.5"/><rect x="14.5" y="5.5" width="5" height="14.5"/></svg>',
+    cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20.5 8H6"/><circle cx="9.5" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>'
+  };
+  function mountIcons() {
+    document.getElementById('icon-money').innerHTML = ICONS.money;
+    document.getElementById('icon-chart').innerHTML = ICONS.chart;
+    document.getElementById('icon-receipt').innerHTML = ICONS.receipt;
+    document.getElementById('icon-calendar').innerHTML = ICONS.calendar;
+    document.getElementById('icon-map').innerHTML = ICONS.map;
+    document.getElementById('icon-flag').innerHTML = ICONS.flag;
+    document.getElementById('icon-bag').innerHTML = ICONS.bag;
+    document.getElementById('icon-check').innerHTML = ICONS.check;
+    document.getElementById('icon-compare').innerHTML = ICONS.compare;
+    document.getElementById('icon-cart').innerHTML = ICONS.cart;
+    document.getElementById('icon-exchange').innerHTML = ICONS.exchange;
+    document.getElementById('tab-money').innerHTML = ICONS.money;
+    document.getElementById('tab-trip').innerHTML = ICONS.calendar;
+    document.getElementById('tab-shop').innerHTML = ICONS.bag;
+    document.getElementById('tab-exchange').innerHTML = ICONS.exchange;
+  }
 
   let payer = '脆';
   let currency = '日幣';
@@ -366,7 +404,7 @@
     if (mode === 'view') {
       if (group === 'money') { loadSettlement(); loadRecentAccounting(); }
       if (group === 'trip') { loadItineraryStructured(); }
-      if (group === 'shop') { loadShoppingList(); }
+      if (group === 'shop') { loadShoppingStructured(); }
     }
   }
 
@@ -385,7 +423,6 @@
     document.getElementById('specifiedBox').classList.toggle('hidden', type !== '指定');
   }
 
-  // JSONP 呼叫工具：用 <script> 標籤繞過跨網域限制
   function jsonp(params) {
     return new Promise((resolve, reject) => {
       const callbackName = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
@@ -416,7 +453,7 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  /* ---------- 記帳 ---------- */
+  /* ---------- 記帳：新增 ---------- */
   function submitExpense() {
     const item = document.getElementById('m-item').value.trim();
     const amount = document.getElementById('m-amount').value.trim();
@@ -439,18 +476,45 @@
       .catch(err => { btn.disabled = false; btn.textContent = '送出記帳'; showError('m-resultBox', err); });
   }
 
+  /* ---------- 記帳：查看 ---------- */
+  function renderSettlement(res) {
+    if (!res.ok) return '<p class="empty-note">' + esc(res.message) + '</p>';
+    const grid = '<div class="settle-grid">' + res.people.map(p =>
+      '<div class="settle-person"><div class="settle-name">' + esc(p.name) + '</div>' +
+      '<div class="settle-nums"><div><span>總支出</span><b>NT$' + p.paid + '</b></div>' +
+      '<div><span>總花費</span><b>NT$' + p.expense + '</b></div></div></div>'
+    ).join('') + '</div>';
+    const net = res.net.settled
+      ? '<div class="settle-net even">目前平手，互不相欠</div>'
+      : '<div class="settle-net">' + esc(res.net.text) + '<strong>NT$' + res.net.amount + '</strong></div>';
+    return grid + net;
+  }
+
   function loadSettlement() {
-    document.getElementById('settlementBox').textContent = '載入中...';
-    jsonp({ action: 'getSettlement' })
-      .then(res => { document.getElementById('settlementBox').textContent = res.message; })
-      .catch(err => { document.getElementById('settlementBox').textContent = '讀取失敗：' + err.message; });
+    document.getElementById('settlementBox').innerHTML = '<p class="empty-note">載入中...</p>';
+    jsonp({ action: 'getSettlementStructured' })
+      .then(res => { document.getElementById('settlementBox').innerHTML = renderSettlement(res); })
+      .catch(err => { document.getElementById('settlementBox').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>'; });
+  }
+
+  function renderRecentAccounting(res) {
+    if (!res.ok) return '<p class="empty-note">' + esc(res.message) + '</p>';
+    if (!res.groups || res.groups.length === 0) return '<p class="empty-note">目前還沒有記帳資料。</p>';
+    return res.groups.map(g =>
+      '<div class="day-group"><div class="day-header">' + esc(g.date) + '</div>' +
+      g.items.map(it =>
+        '<div class="stop-row"><div class="stop-main">' +
+        '<div class="stop-loc">' + esc(it.item) + '　' + esc(it.amount) + esc(it.currency) + '</div>' +
+        '<div class="stop-detail">付款人 ' + esc(it.payer) + '　' + esc(it.type) + '</div></div></div>'
+      ).join('') + '</div>'
+    ).join('');
   }
 
   function loadRecentAccounting() {
-    document.getElementById('recentBox').textContent = '載入中...';
-    jsonp({ action: 'getRecentAccounting' })
-      .then(res => { document.getElementById('recentBox').textContent = res.message; })
-      .catch(err => { document.getElementById('recentBox').textContent = '讀取失敗：' + err.message; });
+    document.getElementById('recentBox').innerHTML = '<p class="empty-note">載入中...</p>';
+    jsonp({ action: 'getRecentAccountingStructured' })
+      .then(res => { document.getElementById('recentBox').innerHTML = renderRecentAccounting(res); })
+      .catch(err => { document.getElementById('recentBox').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>'; });
   }
 
   /* ---------- 匯率換算 ---------- */
@@ -467,7 +531,7 @@
       .catch(err => { btn.disabled = false; btn.textContent = '換算'; showError('ex-resultBox', err); });
   }
 
-  /* ---------- 行程 ---------- */
+  /* ---------- 行程：新增 ---------- */
   function submitItinerary() {
     const location = document.getElementById('t-location').value.trim();
     const date = document.getElementById('t-date').value.trim();
@@ -492,6 +556,7 @@
       .catch(err => { btn.disabled = false; btn.textContent = '送出行程'; showError('t-resultBox', err); });
   }
 
+  /* ---------- 行程：查看 ---------- */
   function renderStop(s) {
     const details = [];
     if (s.address) details.push('📍 ' + esc(s.address));
@@ -524,11 +589,12 @@
         ).join('');
       }
 
-      if (!res.unscheduled || res.unscheduled.length === 0) {
+      if (!res.unscheduledGroups || res.unscheduledGroups.length === 0) {
         document.getElementById('itineraryUnscheduled').innerHTML = '<p class="empty-note">目前沒有尚未安排的地點。</p>';
       } else {
-        document.getElementById('itineraryUnscheduled').innerHTML = res.unscheduled.map(u =>
-          '<span class="unscheduled-chip">' + esc(u.location) + (u.region ? '（' + esc(u.region) + '）' : '') + '</span>'
+        document.getElementById('itineraryUnscheduled').innerHTML = res.unscheduledGroups.map(g =>
+          '<div class="day-group"><div class="day-header">' + esc(g.region) + '</div>' +
+          '<div class="chip-wrap">' + g.items.map(it => '<span class="unscheduled-chip">' + esc(it.location) + '</span>').join('') + '</div></div>'
         ).join('');
       }
     }).catch(err => {
@@ -536,7 +602,7 @@
     });
   }
 
-  /* ---------- 購物 ---------- */
+  /* ---------- 購物：新增 ---------- */
   function submitShopping() {
     const item = document.getElementById('s-item').value.trim();
     const date = document.getElementById('s-date').value.trim();
@@ -595,12 +661,33 @@
       .catch(err => { btn.disabled = false; btn.textContent = '記錄比價'; showError('s-priceResultBox', err); });
   }
 
-  function loadShoppingList() {
-    document.getElementById('shoppingBox').textContent = '載入中...';
-    jsonp({ action: 'getShoppingList' })
-      .then(res => { document.getElementById('shoppingBox').textContent = res.message; })
-      .catch(err => { document.getElementById('shoppingBox').textContent = '讀取失敗：' + err.message; });
+  /* ---------- 購物：查看 ---------- */
+  function renderShopping(res) {
+    if (!res.ok) return '<p class="empty-note">' + esc(res.message) + '</p>';
+    let html = '';
+    if (res.dated && res.dated.length) {
+      html += res.dated.map(g =>
+        '<div class="day-group"><div class="day-header">' + esc(g.date) + '</div>' +
+        g.items.map(name => '<div class="stop-row"><div class="stop-main"><div class="stop-loc">' + esc(name) + '</div></div></div>').join('') +
+        '</div>'
+      ).join('');
+    }
+    if (res.undated && res.undated.length) {
+      html += '<div class="day-group"><div class="day-header">未指定日期</div>' +
+        res.undated.map(name => '<div class="stop-row"><div class="stop-main"><div class="stop-loc">' + esc(name) + '</div></div></div>').join('') +
+        '</div>';
+    }
+    return html || '<p class="empty-note">購物清單目前是空的。</p>';
   }
+
+  function loadShoppingStructured() {
+    document.getElementById('shoppingBox').innerHTML = '<p class="empty-note">載入中...</p>';
+    jsonp({ action: 'getShoppingStructured' })
+      .then(res => { document.getElementById('shoppingBox').innerHTML = renderShopping(res); })
+      .catch(err => { document.getElementById('shoppingBox').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>'; });
+  }
+
+  mountIcons();
 </script>
 </body>
 </html>
