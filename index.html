@@ -444,22 +444,33 @@
     document.getElementById('specifiedBox').classList.toggle('hidden', type !== '指定');
   }
 
-  function jsonp(params) {
+  // 單次 JSONP 呼叫（逾時拉長到 25 秒，Apps Script 剛被閒置喚醒時第一次呼叫常常較慢）
+  function jsonpOnce(params) {
     return new Promise((resolve, reject) => {
       const callbackName = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-      params = Object.assign({}, params, { callback: callbackName });
-      const query = Object.keys(params)
-        .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] == null ? '' : params[k]))
+      const fullParams = Object.assign({}, params, { callback: callbackName });
+      const query = Object.keys(fullParams)
+        .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(fullParams[k] == null ? '' : fullParams[k]))
         .join('&');
 
       const script = document.createElement('script');
-      const timeout = setTimeout(() => { cleanup(); reject(new Error('連線逾時，請重新整理再試一次')); }, 15000);
+      const timeout = setTimeout(() => { cleanup(); reject(new Error('連線逾時')); }, 25000);
       function cleanup() { clearTimeout(timeout); delete window[callbackName]; script.remove(); }
 
       window[callbackName] = function (data) { cleanup(); resolve(data); };
-      script.onerror = () => { cleanup(); reject(new Error('連線失敗，請重新整理再試一次')); };
+      script.onerror = () => { cleanup(); reject(new Error('連線失敗')); };
       script.src = GAS_URL + '?' + query;
       document.body.appendChild(script);
+    });
+  }
+
+  // 失敗（逾時／連線失敗）自動重試一次，通常是 Apps Script 剛被喚醒比較慢，重試就會成功
+  function jsonp(params) {
+    return jsonpOnce(params).catch(err => {
+      console.warn('第一次呼叫失敗，自動重試一次：', err.message);
+      return jsonpOnce(params).catch(err2 => {
+        throw new Error('連線逾時或失敗（已自動重試一次），請稍後再試');
+      });
     });
   }
 
