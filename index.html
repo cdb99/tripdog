@@ -3,89 +3,380 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>京阪旅遊記帳</title>
+<title>旅遊土狗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif; margin: 0; padding: 16px; padding-top: calc(16px + env(safe-area-inset-top)); background: #f5f5f5; color: #222; }
-  h1 { font-size: 20px; margin: 0 0 16px; }
-  .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-  label { display: block; font-size: 14px; color: #666; margin: 12px 0 6px; }
-  input[type=text], input[type=number] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-  .btn-group { display: flex; gap: 8px; }
-  .btn-group button { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 15px; }
-  .btn-group button.active { background: #222; color: #fff; border-color: #222; }
-  .submit-btn { width: 100%; padding: 14px; margin-top: 16px; background: #222; color: #fff; border: none; border-radius: 10px; font-size: 16px; }
-  .submit-btn:disabled { background: #aaa; }
-  .hidden { display: none; }
-  .result { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 14px; white-space: pre-wrap; }
-  .result.ok { background: #e6f4ea; color: #1e4620; }
-  .result.err { background: #fce8e6; color: #611a15; }
-  pre.summary { white-space: pre-wrap; font-size: 14px; margin: 0; font-family: inherit; }
-  .refresh-btn { font-size: 13px; color: #666; background: none; border: none; text-decoration: underline; padding: 0; }
+  :root {
+    --paper: #f2ede2;
+    --card: #fffdf8;
+    --line: #ddd3bd;
+    --ink: #2b2924;
+    --muted: #7a7263;
+    --accent: #3c5560;
+    --accent-soft: #e2e8e3;
+    --ok-bg: #edf0e4;
+    --ok-ink: #47542f;
+    --err-bg: #f4e9e3;
+    --err-ink: #7c4230;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    margin: 0; background: var(--paper); color: var(--ink);
+    padding: 18px; padding-top: calc(18px + env(safe-area-inset-top));
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+
+  header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px; }
+  h1 {
+    font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 22px; margin: 0;
+    letter-spacing: 0.04em; color: var(--ink);
+  }
+  .sub { font-size: 12.5px; color: var(--muted); margin: 4px 0 20px; letter-spacing: 0.02em; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 18px; margin-bottom: 16px; }
+  .card-title { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .badge {
+    width: 26px; height: 26px; min-width: 26px; border-radius: 50%; background: var(--accent-soft);
+    color: var(--accent); display: flex; align-items: center; justify-content: center;
+    font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 13px;
+  }
+  .card-title h2 { font-size: 14.5px; margin: 0; font-weight: 500; letter-spacing: 0.03em; color: var(--ink); }
+
+  label { display: block; font-size: 12.5px; color: var(--muted); margin: 14px 0 6px; letter-spacing: 0.02em; }
+  input[type=text], input[type=number] {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 3px;
+    font-size: 16px; background: #fff; color: var(--ink); font-family: inherit;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-row button {
+    flex: 1; min-width: 70px; padding: 9px 6px; border: 1px solid var(--line); border-radius: 3px;
+    background: #fff; font-size: 13.5px; color: var(--muted); font-family: inherit;
+  }
+  .btn-row button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 500; }
+
+  .primary-btn {
+    width: 100%; padding: 13px; margin-top: 18px; background: var(--accent); color: #faf8f2;
+    border: none; border-radius: 3px; font-size: 14.5px; letter-spacing: 0.06em; font-family: inherit;
+  }
+  .primary-btn:disabled { background: #b6ae9d; }
+
+  .hidden { display: none !important; }
+
+  .result { margin-top: 12px; padding: 11px 12px; border-radius: 3px; font-size: 13px; white-space: pre-wrap; line-height: 1.55; }
+  .result.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .result.err { background: var(--err-bg); color: var(--err-ink); }
+
+  pre.summary {
+    white-space: pre-wrap; font-size: 13.5px; margin: 0; font-family: inherit; line-height: 1.7; color: var(--ink);
+  }
+
+  .refresh-btn {
+    font-size: 12px; color: var(--accent); background: none; border: none;
+    text-decoration: underline; padding: 0; letter-spacing: 0.02em; font-family: inherit;
+  }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .card-head .card-title { margin-bottom: 0; }
+
+  /* 分頁內部的「新增／查看」子切換 */
+  .subtabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .subtabs button {
+    flex: 1; padding: 10px 6px; border: 1px solid var(--line); border-radius: 3px;
+    background: #fff; color: var(--muted); font-size: 13.5px; font-family: inherit; letter-spacing: 0.03em;
+  }
+  .subtabs button.active { background: var(--accent); color: #faf8f2; border-color: var(--accent); font-weight: 500; }
+  .subview { display: none; }
+  .subview.active { display: block; }
+
+  nav.tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; background: var(--card);
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
+    display: flex;
+  }
+  nav.tabbar button {
+    flex: 1; border: none; background: none; padding: 11px 4px 9px;
+    font-size: 11.5px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 5px;
+    font-family: inherit; letter-spacing: 0.02em;
+  }
+  nav.tabbar .tab-badge {
+    width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 12.5px; color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  nav.tabbar button.active { color: var(--accent); font-weight: 500; }
+  nav.tabbar button.active .tab-badge { background: var(--accent); color: #faf8f2; border-color: var(--accent); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .exchange-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .exchange-row input { flex: 1; }
+  .exchange-unit { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+  /* 行程結構化查看 */
+  .day-group { margin-bottom: 18px; }
+  .day-group:last-child { margin-bottom: 0; }
+  .day-header {
+    display: flex; align-items: center; gap: 8px; font-family: "Noto Serif TC", serif;
+    font-weight: 700; font-size: 14px; color: var(--accent); margin-bottom: 8px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--line);
+  }
+  .stop-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  .stop-row:last-child { border-bottom: none; }
+  .stop-time {
+    min-width: 46px; font-size: 12px; color: var(--muted); padding-top: 1px; font-variant-numeric: tabular-nums;
+  }
+  .stop-time.empty { color: #c7bfa8; }
+  .stop-main { flex: 1; }
+  .stop-loc { font-size: 14px; color: var(--ink); }
+  .stop-detail { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+  .stop-detail a { color: var(--accent); }
+  .empty-note { font-size: 13px; color: var(--muted); padding: 6px 0; }
+
+  .unscheduled-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; margin: 0 6px 6px 0;
+    background: var(--accent-soft); border-radius: 20px; font-size: 12.5px; color: var(--ink);
+  }
 </style>
 </head>
 <body>
-  <h1>💰 京阪旅遊記帳</h1>
+  <header>
+    <h1>旅遊土狗</h1>
+  </header>
+  <p class="sub">你的旅遊小助手</p>
 
-  <div class="card">
-    <label>付款人</label>
-    <div class="btn-group" id="payerGroup">
-      <button type="button" data-val="脆" class="active" onclick="selectPayer(this)">脆</button>
-      <button type="button" data-val="捲" onclick="selectPayer(this)">捲</button>
+  <!-- ============ 記帳 ============ -->
+  <section id="view-money" class="view active">
+    <div class="subtabs">
+      <button type="button" class="active" onclick="switchSub('money','add')">新增</button>
+      <button type="button" onclick="switchSub('money','view')">查看</button>
     </div>
 
-    <label>項目</label>
-    <input type="text" id="item" placeholder="例：晚餐">
+    <div id="money-add" class="subview active">
+      <div class="card">
+        <div class="card-title"><span class="badge">帳</span><h2>新增記帳</h2></div>
+        <label>付款人</label>
+        <div class="btn-row" id="payerGroup">
+          <button type="button" data-val="脆" class="active" onclick="selectGroup(this,'payerGroup',v=>payer=v)">脆</button>
+          <button type="button" data-val="捲" onclick="selectGroup(this,'payerGroup',v=>payer=v)">捲</button>
+        </div>
 
-    <label>金額</label>
-    <input type="number" id="amount" placeholder="例：600">
+        <label>項目</label>
+        <input type="text" id="m-item" placeholder="例：晚餐">
 
-    <label>幣別</label>
-    <div class="btn-group" id="currGroup">
-      <button type="button" data-val="日幣" class="active" onclick="selectCurrency(this)">日幣</button>
-      <button type="button" data-val="台幣" onclick="selectCurrency(this)">台幣</button>
+        <label>金額</label>
+        <input type="number" id="m-amount" placeholder="例：600">
+
+        <label>幣別</label>
+        <div class="btn-row" id="currGroup">
+          <button type="button" data-val="日幣" class="active" onclick="selectGroup(this,'currGroup',v=>currency=v)">日幣</button>
+          <button type="button" data-val="台幣" onclick="selectGroup(this,'currGroup',v=>currency=v)">台幣</button>
+        </div>
+
+        <label>類型</label>
+        <div class="btn-row" id="typeGroup">
+          <button type="button" data-val="個人" class="active" onclick="selectType(this)">個人</button>
+          <button type="button" data-val="平分" onclick="selectType(this)">平分</button>
+          <button type="button" data-val="指定" onclick="selectType(this)">指定金額</button>
+        </div>
+
+        <div id="specifiedBox" class="hidden">
+          <label>另一人負擔金額</label>
+          <input type="number" id="m-otherAmount" placeholder="例：200">
+        </div>
+
+        <button class="primary-btn" id="m-submitBtn" onclick="submitExpense()">送出記帳</button>
+        <div id="m-resultBox"></div>
+      </div>
     </div>
 
-    <label>類型</label>
-    <div class="btn-group" id="typeGroup">
-      <button type="button" data-val="個人" class="active" onclick="selectType(this)">個人不分帳</button>
-      <button type="button" data-val="平分" onclick="selectType(this)">分帳平分</button>
-      <button type="button" data-val="指定" onclick="selectType(this)">分帳指定金額</button>
+    <div id="money-view" class="subview">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><span class="badge">結</span><h2>目前結算</h2></div>
+          <button class="refresh-btn" onclick="loadSettlement()">重新整理</button>
+        </div>
+        <pre class="summary" id="settlementBox">載入中...</pre>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><span class="badge">錄</span><h2>最近記帳紀錄</h2></div>
+          <button class="refresh-btn" onclick="loadRecentAccounting()">重新整理</button>
+        </div>
+        <pre class="summary" id="recentBox">載入中...</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 行程 ============ -->
+  <section id="view-trip" class="view">
+    <div class="subtabs">
+      <button type="button" class="active" onclick="switchSub('trip','add')">新增</button>
+      <button type="button" onclick="switchSub('trip','view')">查看</button>
     </div>
 
-    <div id="specifiedBox" class="hidden">
-      <label>另一人負擔金額</label>
-      <input type="number" id="otherAmount" placeholder="例：200">
+    <div id="trip-add" class="subview active">
+      <div class="card">
+        <div class="card-title"><span class="badge">程</span><h2>新增行程</h2></div>
+        <label>地點</label>
+        <input type="text" id="t-location" placeholder="例：黑門市場">
+
+        <label>日期（選填，格式 M/D，例如 10/18）</label>
+        <input type="text" id="t-date" placeholder="不填代表尚未排定">
+
+        <label>時間（選填，格式 HH:MM，例如 15:00）</label>
+        <input type="text" id="t-time" placeholder="不填代表只排日期">
+
+        <label>地區（選填，需與設定分頁的地區名稱一致）</label>
+        <input type="text" id="t-region" placeholder="例：京都">
+
+        <button class="primary-btn" id="t-submitBtn" onclick="submitItinerary()">送出行程</button>
+        <div id="t-resultBox"></div>
+      </div>
     </div>
 
-    <button class="submit-btn" id="submitBtn" onclick="submitExpense()">送出記帳</button>
-    <div id="resultBox"></div>
-  </div>
+    <div id="trip-view" class="subview">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><span class="badge">覽</span><h2>整體行程</h2></div>
+          <button class="refresh-btn" onclick="loadItineraryStructured()">重新整理</button>
+        </div>
+        <div id="itineraryDays"><p class="empty-note">載入中...</p></div>
+      </div>
 
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <strong>📊 目前結算</strong>
-      <button class="refresh-btn" onclick="loadSettlement()">重新整理</button>
+      <div class="card">
+        <div class="card-title"><span class="badge">願</span><h2>尚未安排</h2></div>
+        <div id="itineraryUnscheduled"><p class="empty-note">載入中...</p></div>
+      </div>
     </div>
-    <pre class="summary" id="settlementBox">載入中...</pre>
-  </div>
+  </section>
+
+  <!-- ============ 購物 ============ -->
+  <section id="view-shop" class="view">
+    <div class="subtabs">
+      <button type="button" class="active" onclick="switchSub('shop','add')">新增</button>
+      <button type="button" onclick="switchSub('shop','view')">查看</button>
+    </div>
+
+    <div id="shop-add" class="subview active">
+      <div class="card">
+        <div class="card-title"><span class="badge">買</span><h2>加入購物清單</h2></div>
+        <label>物品</label>
+        <input type="text" id="s-item" placeholder="例：面膜">
+
+        <label>提醒日期（選填，格式 M/D）</label>
+        <input type="text" id="s-date" placeholder="不填代表沒有特定日期">
+
+        <button class="primary-btn" id="s-submitBtn" onclick="submitShopping()">加入清單</button>
+        <div id="s-resultBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="badge">已</span><h2>標記已買</h2></div>
+        <label>物品名稱</label>
+        <input type="text" id="s-boughtItem" placeholder="要跟清單上的名稱一致">
+        <button class="primary-btn" id="s-boughtBtn" onclick="submitBought()">標記已買</button>
+        <div id="s-boughtResultBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="badge">比</span><h2>記一筆比價</h2></div>
+        <label>物品</label>
+        <input type="text" id="s-cItem" placeholder="例：合利他命">
+        <label>通路</label>
+        <input type="text" id="s-vendor" placeholder="例：大國藥妝">
+        <label>價格</label>
+        <input type="number" id="s-price" placeholder="例：500">
+        <button class="primary-btn" id="s-priceBtn" onclick="submitPriceCompare()">記錄比價</button>
+        <div id="s-priceResultBox"></div>
+      </div>
+    </div>
+
+    <div id="shop-view" class="subview">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><span class="badge">單</span><h2>目前購物清單</h2></div>
+          <button class="refresh-btn" onclick="loadShoppingList()">重新整理</button>
+        </div>
+        <pre class="summary" id="shoppingBox">載入中...</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 匯率 ============ -->
+  <section id="view-exchange" class="view">
+    <div class="card">
+      <div class="card-title"><span class="badge">換</span><h2>匯率換算</h2></div>
+      <div class="btn-row" id="exFromGroup">
+        <button type="button" data-val="日" class="active" onclick="selectGroup(this,'exFromGroup',v=>exFrom=v)">日幣 →</button>
+        <button type="button" data-val="台" onclick="selectGroup(this,'exFromGroup',v=>exFrom=v)">台幣 →</button>
+      </div>
+      <div class="exchange-row">
+        <input type="number" id="ex-amount" placeholder="輸入金額">
+        <span class="exchange-unit" id="ex-unit">日幣</span>
+      </div>
+      <button class="primary-btn" id="ex-submitBtn" onclick="submitExchange()">換算</button>
+      <div id="ex-resultBox"></div>
+    </div>
+  </section>
+
+  <nav class="tabbar">
+    <button type="button" class="active" data-view="view-money" onclick="switchTab(this)">
+      <span class="tab-badge">帳</span>記帳
+    </button>
+    <button type="button" data-view="view-trip" onclick="switchTab(this)">
+      <span class="tab-badge">程</span>行程
+    </button>
+    <button type="button" data-view="view-shop" onclick="switchTab(this)">
+      <span class="tab-badge">買</span>購物
+    </button>
+    <button type="button" data-view="view-exchange" onclick="switchTab(this)">
+      <span class="tab-badge">換</span>匯率
+    </button>
+  </nav>
 
 <script>
+  // 換成你自己在 Apps Script 部署出來的網址（結尾是 /exec）
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbzCwqpZwNApZemLgDqQRFckKICMFXnbj3Fuh5UOgqxoYyoZ774Diiqupt9j4kEC9r-v/exec';
 
   let payer = '脆';
   let currency = '日幣';
   let type = '個人';
+  let exFrom = '日';
 
-  function selectPayer(btn) {
-    payer = btn.dataset.val;
-    document.querySelectorAll('#payerGroup button').forEach(b => b.classList.remove('active'));
+  function switchTab(btn) {
+    document.querySelectorAll('nav.tabbar button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     btn.classList.add('active');
+    document.getElementById(btn.dataset.view).classList.add('active');
   }
-  function selectCurrency(btn) {
-    currency = btn.dataset.val;
-    document.querySelectorAll('#currGroup button').forEach(b => b.classList.remove('active'));
+
+  function switchSub(group, mode) {
+    document.querySelectorAll('#view-' + (group === 'money' ? 'money' : group === 'trip' ? 'trip' : 'shop') + ' .subtabs button')
+      .forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(group + '-add').classList.toggle('active', mode === 'add');
+    document.getElementById(group + '-view').classList.toggle('active', mode === 'view');
+    if (mode === 'view') {
+      if (group === 'money') { loadSettlement(); loadRecentAccounting(); }
+      if (group === 'trip') { loadItineraryStructured(); }
+      if (group === 'shop') { loadShoppingList(); }
+    }
+  }
+
+  function selectGroup(btn, groupId, setter) {
+    setter(btn.dataset.val);
+    document.querySelectorAll('#' + groupId + ' button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    if (groupId === 'exFromGroup') {
+      document.getElementById('ex-unit').textContent = exFrom === '日' ? '日幣' : '台幣';
+    }
   }
   function selectType(btn) {
     type = btn.dataset.val;
@@ -94,6 +385,7 @@
     document.getElementById('specifiedBox').classList.toggle('hidden', type !== '指定');
   }
 
+  // JSONP 呼叫工具：用 <script> 標籤繞過跨網域限制
   function jsonp(params) {
     return new Promise((resolve, reject) => {
       const callbackName = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
@@ -103,80 +395,212 @@
         .join('&');
 
       const script = document.createElement('script');
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error('連線逾時，請確認網路或稍後再試'));
-      }, 15000);
+      const timeout = setTimeout(() => { cleanup(); reject(new Error('連線逾時，請重新整理再試一次')); }, 15000);
+      function cleanup() { clearTimeout(timeout); delete window[callbackName]; script.remove(); }
 
-      function cleanup() {
-        clearTimeout(timeout);
-        delete window[callbackName];
-        script.remove();
-      }
-
-      window[callbackName] = function (data) {
-        cleanup();
-        resolve(data);
-      };
-      script.onerror = () => {
-        cleanup();
-        reject(new Error('連線失敗'));
-      };
+      window[callbackName] = function (data) { cleanup(); resolve(data); };
+      script.onerror = () => { cleanup(); reject(new Error('連線失敗，請重新整理再試一次')); };
       script.src = GAS_URL + '?' + query;
       document.body.appendChild(script);
     });
   }
 
+  function showResult(boxId, res) {
+    document.getElementById(boxId).innerHTML =
+      '<div class="result ' + (res.ok ? 'ok' : 'err') + '">' + res.message + '</div>';
+  }
+  function showError(boxId, err) {
+    document.getElementById(boxId).innerHTML = '<div class="result err">' + err.message + '</div>';
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ---------- 記帳 ---------- */
   function submitExpense() {
-    const item = document.getElementById('item').value.trim();
-    const amount = document.getElementById('amount').value.trim();
-    const otherAmount = document.getElementById('otherAmount').value.trim();
-    const resultBox = document.getElementById('resultBox');
-    const submitBtn = document.getElementById('submitBtn');
+    const item = document.getElementById('m-item').value.trim();
+    const amount = document.getElementById('m-amount').value.trim();
+    const otherAmount = document.getElementById('m-otherAmount').value.trim();
+    if (!item || !amount) { showResult('m-resultBox', { ok: false, message: '請填寫項目與金額' }); return; }
 
-    if (!item || !amount) {
-      resultBox.innerHTML = '<div class="result err">請填寫項目與金額</div>';
-      return;
-    }
+    const btn = document.getElementById('m-submitBtn');
+    btn.disabled = true; btn.textContent = '送出中...';
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = '送出中...';
-
-    jsonp({
-      action: 'addExpense',
-      payer: payer,
-      item: item,
-      amount: amount,
-      currency: currency,
-      type: type,
-      otherAmount: otherAmount
-    }).then(res => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = '送出記帳';
-      resultBox.innerHTML = '<div class="result ' + (res.ok ? 'ok' : 'err') + '">' + res.message + '</div>';
-      if (res.ok) {
-        document.getElementById('item').value = '';
-        document.getElementById('amount').value = '';
-        document.getElementById('otherAmount').value = '';
-        loadSettlement();
-      }
-    }).catch(err => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = '送出記帳';
-      resultBox.innerHTML = '<div class="result err">' + err.message + '</div>';
-    });
+    jsonp({ action: 'addExpense', payer, item, amount, currency, type, otherAmount })
+      .then(res => {
+        btn.disabled = false; btn.textContent = '送出記帳';
+        showResult('m-resultBox', res);
+        if (res.ok) {
+          document.getElementById('m-item').value = '';
+          document.getElementById('m-amount').value = '';
+          document.getElementById('m-otherAmount').value = '';
+        }
+      })
+      .catch(err => { btn.disabled = false; btn.textContent = '送出記帳'; showError('m-resultBox', err); });
   }
 
   function loadSettlement() {
     document.getElementById('settlementBox').textContent = '載入中...';
-    jsonp({ action: 'getSettlement' }).then(res => {
-      document.getElementById('settlementBox').textContent = res.message;
+    jsonp({ action: 'getSettlement' })
+      .then(res => { document.getElementById('settlementBox').textContent = res.message; })
+      .catch(err => { document.getElementById('settlementBox').textContent = '讀取失敗：' + err.message; });
+  }
+
+  function loadRecentAccounting() {
+    document.getElementById('recentBox').textContent = '載入中...';
+    jsonp({ action: 'getRecentAccounting' })
+      .then(res => { document.getElementById('recentBox').textContent = res.message; })
+      .catch(err => { document.getElementById('recentBox').textContent = '讀取失敗：' + err.message; });
+  }
+
+  /* ---------- 匯率換算 ---------- */
+  function submitExchange() {
+    const amount = document.getElementById('ex-amount').value.trim();
+    if (!amount) { showResult('ex-resultBox', { ok: false, message: '請輸入金額' }); return; }
+    const to = exFrom === '日' ? '台' : '日';
+
+    const btn = document.getElementById('ex-submitBtn');
+    btn.disabled = true; btn.textContent = '換算中...';
+
+    jsonp({ action: 'exchange', from: exFrom, to: to, amount: amount })
+      .then(res => { btn.disabled = false; btn.textContent = '換算'; showResult('ex-resultBox', res); })
+      .catch(err => { btn.disabled = false; btn.textContent = '換算'; showError('ex-resultBox', err); });
+  }
+
+  /* ---------- 行程 ---------- */
+  function submitItinerary() {
+    const location = document.getElementById('t-location').value.trim();
+    const date = document.getElementById('t-date').value.trim();
+    const time = document.getElementById('t-time').value.trim();
+    const region = document.getElementById('t-region').value.trim();
+    if (!location) { showResult('t-resultBox', { ok: false, message: '請填寫地點' }); return; }
+
+    const btn = document.getElementById('t-submitBtn');
+    btn.disabled = true; btn.textContent = '送出中...';
+
+    jsonp({ action: 'addItinerary', location, date, time, region })
+      .then(res => {
+        btn.disabled = false; btn.textContent = '送出行程';
+        showResult('t-resultBox', res);
+        if (res.ok) {
+          document.getElementById('t-location').value = '';
+          document.getElementById('t-date').value = '';
+          document.getElementById('t-time').value = '';
+          document.getElementById('t-region').value = '';
+        }
+      })
+      .catch(err => { btn.disabled = false; btn.textContent = '送出行程'; showError('t-resultBox', err); });
+  }
+
+  function renderStop(s) {
+    const details = [];
+    if (s.address) details.push('📍 ' + esc(s.address));
+    if (s.map) details.push('<a href="' + esc(s.map) + '" target="_blank" rel="noopener">地圖連結</a>');
+    if (s.transport) details.push('🚃 ' + esc(s.transport));
+    if (s.note) details.push(esc(s.note));
+    const detailHtml = details.length ? '<div class="stop-detail">' + details.join('　') + '</div>' : '';
+    const timeHtml = s.time
+      ? '<div class="stop-time">' + esc(s.time) + '</div>'
+      : '<div class="stop-time empty">・</div>';
+    return '<div class="stop-row">' + timeHtml +
+      '<div class="stop-main"><div class="stop-loc">' + esc(s.location) + '</div>' + detailHtml + '</div></div>';
+  }
+
+  function loadItineraryStructured() {
+    document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">載入中...</p>';
+    document.getElementById('itineraryUnscheduled').innerHTML = '<p class="empty-note">載入中...</p>';
+
+    jsonp({ action: 'getItineraryStructured' }).then(res => {
+      if (!res.ok) {
+        document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">' + esc(res.message) + '</p>';
+        return;
+      }
+      if (!res.days || res.days.length === 0) {
+        document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">目前還沒有已排定日期的行程。</p>';
+      } else {
+        document.getElementById('itineraryDays').innerHTML = res.days.map(day =>
+          '<div class="day-group"><div class="day-header">' + esc(day.date) + '</div>' +
+          day.stops.map(renderStop).join('') + '</div>'
+        ).join('');
+      }
+
+      if (!res.unscheduled || res.unscheduled.length === 0) {
+        document.getElementById('itineraryUnscheduled').innerHTML = '<p class="empty-note">目前沒有尚未安排的地點。</p>';
+      } else {
+        document.getElementById('itineraryUnscheduled').innerHTML = res.unscheduled.map(u =>
+          '<span class="unscheduled-chip">' + esc(u.location) + (u.region ? '（' + esc(u.region) + '）' : '') + '</span>'
+        ).join('');
+      }
     }).catch(err => {
-      document.getElementById('settlementBox').textContent = '讀取失敗：' + err.message;
+      document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>';
     });
   }
 
-  loadSettlement();
+  /* ---------- 購物 ---------- */
+  function submitShopping() {
+    const item = document.getElementById('s-item').value.trim();
+    const date = document.getElementById('s-date').value.trim();
+    if (!item) { showResult('s-resultBox', { ok: false, message: '請填寫物品名稱' }); return; }
+
+    const btn = document.getElementById('s-submitBtn');
+    btn.disabled = true; btn.textContent = '送出中...';
+
+    jsonp({ action: 'addShopping', item, date })
+      .then(res => {
+        btn.disabled = false; btn.textContent = '加入清單';
+        showResult('s-resultBox', res);
+        if (res.ok) {
+          document.getElementById('s-item').value = '';
+          document.getElementById('s-date').value = '';
+        }
+      })
+      .catch(err => { btn.disabled = false; btn.textContent = '加入清單'; showError('s-resultBox', err); });
+  }
+
+  function submitBought() {
+    const item = document.getElementById('s-boughtItem').value.trim();
+    if (!item) { showResult('s-boughtResultBox', { ok: false, message: '請填寫物品名稱' }); return; }
+
+    const btn = document.getElementById('s-boughtBtn');
+    btn.disabled = true; btn.textContent = '送出中...';
+
+    jsonp({ action: 'markBought', item })
+      .then(res => {
+        btn.disabled = false; btn.textContent = '標記已買';
+        showResult('s-boughtResultBox', res);
+        if (res.ok) { document.getElementById('s-boughtItem').value = ''; }
+      })
+      .catch(err => { btn.disabled = false; btn.textContent = '標記已買'; showError('s-boughtResultBox', err); });
+  }
+
+  function submitPriceCompare() {
+    const item = document.getElementById('s-cItem').value.trim();
+    const vendor = document.getElementById('s-vendor').value.trim();
+    const price = document.getElementById('s-price').value.trim();
+    if (!item || !vendor || !price) { showResult('s-priceResultBox', { ok: false, message: '物品、通路、價格都要填' }); return; }
+
+    const btn = document.getElementById('s-priceBtn');
+    btn.disabled = true; btn.textContent = '送出中...';
+
+    jsonp({ action: 'addPriceCompare', item, vendor, price })
+      .then(res => {
+        btn.disabled = false; btn.textContent = '記錄比價';
+        showResult('s-priceResultBox', res);
+        if (res.ok) {
+          document.getElementById('s-cItem').value = '';
+          document.getElementById('s-vendor').value = '';
+          document.getElementById('s-price').value = '';
+        }
+      })
+      .catch(err => { btn.disabled = false; btn.textContent = '記錄比價'; showError('s-priceResultBox', err); });
+  }
+
+  function loadShoppingList() {
+    document.getElementById('shoppingBox').textContent = '載入中...';
+    jsonp({ action: 'getShoppingList' })
+      .then(res => { document.getElementById('shoppingBox').textContent = res.message; })
+      .catch(err => { document.getElementById('shoppingBox').textContent = '讀取失敗：' + err.message; });
+  }
 </script>
 </body>
 </html>
