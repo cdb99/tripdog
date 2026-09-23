@@ -181,7 +181,10 @@
 
     <div id="money-add" class="subview active">
       <div class="card">
-        <div class="card-title"><span class="badge" id="icon-money"></span><h2>新增記帳</h2></div>
+        <div class="card-title"><span class="badge" id="icon-money"></span><h2 id="m-form-title">新增記帳</h2></div>
+        <div id="m-editing-note" class="hidden" style="font-size:12.5px;color:var(--accent);margin-bottom:10px;">
+          正在編輯既有資料　<button type="button" class="refresh-btn" onclick="cancelEditExpense()">取消編輯</button>
+        </div>
         <label>付款人</label>
         <div class="btn-row" id="payerGroup">
           <button type="button" data-val="脆" class="active" onclick="selectGroup(this,'payerGroup',v=>payer=v)">脆</button>
@@ -380,7 +383,8 @@
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.6 2.6L16.2 9"/></svg>',
     compare: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="4" y="10.5" width="5" height="9.5"/><rect x="14.5" y="5.5" width="5" height="14.5"/></svg>',
     cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20.5 8H6"/><circle cx="9.5" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>',
-    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6M14 11v6"/></svg>'
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
+    edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.5L15.5 5 19 8.5 8.5 19 4 20Z"/><path d="M13.5 6.5 17.5 10.5"/></svg>'
   };
   function mountIcons() {
     document.getElementById('icon-money').innerHTML = ICONS.money;
@@ -478,19 +482,33 @@
     if (!item || !amount) { showResult('m-resultBox', { ok: false, message: '請填寫項目與金額' }); return; }
 
     const btn = document.getElementById('m-submitBtn');
-    btn.disabled = true; btn.textContent = '送出中...';
+    const isEditing = editingRow !== null;
+    btn.disabled = true; btn.textContent = isEditing ? '更新中...' : '送出中...';
 
-    jsonp({ action: 'addExpense', payer, item, amount, currency, type, otherAmount })
+    const action = isEditing ? 'updateExpense' : 'addExpense';
+    const params = { action, payer, item, amount, currency, type, otherAmount };
+    if (isEditing) params.row = editingRow;
+
+    jsonp(params)
       .then(res => {
-        btn.disabled = false; btn.textContent = '送出記帳';
         showResult('m-resultBox', res);
         if (res.ok) {
-          document.getElementById('m-item').value = '';
-          document.getElementById('m-amount').value = '';
-          document.getElementById('m-otherAmount').value = '';
+          if (isEditing) {
+            cancelEditExpense();
+            loadRecentAccounting();
+            loadSettlement();
+          } else {
+            document.getElementById('m-item').value = '';
+            document.getElementById('m-amount').value = '';
+            document.getElementById('m-otherAmount').value = '';
+          }
         }
+        btn.disabled = false; btn.textContent = editingRow !== null ? '更新記帳' : '送出記帳';
       })
-      .catch(err => { btn.disabled = false; btn.textContent = '送出記帳'; showError('m-resultBox', err); });
+      .catch(err => {
+        btn.disabled = false; btn.textContent = isEditing ? '更新記帳' : '送出記帳';
+        showError('m-resultBox', err);
+      });
   }
 
   /* ---------- 記帳：查看 ---------- */
@@ -514,15 +532,20 @@
       .catch(err => { document.getElementById('settlementBox').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>'; });
   }
 
+  let recentAccountingCache = {};
+
   function renderRecentAccounting(res) {
     if (!res.ok) return '<p class="empty-note">' + esc(res.message) + '</p>';
     if (!res.groups || res.groups.length === 0) return '<p class="empty-note">目前還沒有記帳資料。</p>';
+    recentAccountingCache = {};
+    res.groups.forEach(g => g.items.forEach(it => { recentAccountingCache[it.row] = it; }));
     return res.groups.map(g =>
       '<div class="day-group"><div class="day-header">' + esc(g.date) + '</div>' +
       g.items.map(it =>
         '<div class="stop-row"><div class="stop-row-inner"><div class="stop-main">' +
         '<div class="stop-loc">' + esc(it.item) + '　' + esc(it.amount) + esc(it.currency) + '</div>' +
         '<div class="stop-detail">付款人 ' + esc(it.payer) + '　' + esc(it.type) + '</div></div>' +
+        '<button class="del-btn" onclick="startEditExpense(' + it.row + ')">' + ICONS.edit + '</button>' +
         '<button class="del-btn" onclick="deleteAccountingRow(' + it.row + ')">' + ICONS.trash + '</button>' +
         '</div></div>'
       ).join('') + '</div>'
@@ -534,6 +557,53 @@
     jsonp({ action: 'deleteAccountingRow', row: row })
       .then(res => { loadRecentAccounting(); loadSettlement(); })
       .catch(err => { alert('刪除失敗：' + err.message); });
+  }
+
+  let editingRow = null;
+
+  function startEditExpense(row) {
+    const it = recentAccountingCache[row];
+    if (!it) { alert('找不到這筆資料，請重新整理清單'); return; }
+    editingRow = row;
+
+    document.getElementById('m-item').value = it.item;
+    document.getElementById('m-amount').value = it.amount;
+    document.getElementById('m-otherAmount').value = it.otherShare || '';
+
+    payer = it.payer;
+    document.querySelectorAll('#payerGroup button').forEach(b => b.classList.toggle('active', b.dataset.val === it.payer));
+
+    currency = it.currency;
+    document.querySelectorAll('#currGroup button').forEach(b => b.classList.toggle('active', b.dataset.val === it.currency));
+
+    type = it.type;
+    document.querySelectorAll('#typeGroup button').forEach(b => b.classList.toggle('active', b.dataset.val === it.type));
+    document.getElementById('specifiedBox').classList.toggle('hidden', type !== '指定');
+
+    document.getElementById('m-form-title').textContent = '編輯記帳';
+    document.getElementById('m-editing-note').classList.remove('hidden');
+    document.getElementById('m-submitBtn').textContent = '更新記帳';
+    document.getElementById('m-resultBox').innerHTML = '';
+
+    switchToAddSubtab('money');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelEditExpense() {
+    editingRow = null;
+    document.getElementById('m-item').value = '';
+    document.getElementById('m-amount').value = '';
+    document.getElementById('m-otherAmount').value = '';
+    document.getElementById('m-form-title').textContent = '新增記帳';
+    document.getElementById('m-editing-note').classList.add('hidden');
+    document.getElementById('m-submitBtn').textContent = '送出記帳';
+    document.getElementById('m-resultBox').innerHTML = '';
+  }
+
+  function switchToAddSubtab(group) {
+    document.querySelectorAll('#view-' + group + ' .subtabs button').forEach((b, i) => b.classList.toggle('active', i === 0));
+    document.getElementById(group + '-add').classList.add('active');
+    document.getElementById(group + '-view').classList.remove('active');
   }
 
   function loadRecentAccounting() {
