@@ -158,6 +158,15 @@
     display: flex; align-items: center; justify-content: center; flex: none;
   }
   .del-btn svg { width: 16px; height: 16px; display: block; }
+  .editing-note {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--accent-soft); color: var(--accent); padding: 10px 14px;
+    border-radius: 4px; margin-bottom: 14px; font-size: 13.5px; font-weight: 500;
+  }
+  .editing-note button {
+    background: var(--accent); color: #fff; border: none; padding: 6px 12px;
+    border-radius: 20px; font-size: 12.5px; font-family: inherit; font-weight: 500;
+  }
   .stop-row { align-items: flex-start; }
   .stop-row-inner { display: flex; flex: 1; justify-content: space-between; align-items: center; }
   .unscheduled-chip-wrap { display: inline-flex; align-items: center; background: var(--accent-soft); border-radius: 20px; padding: 2px 4px 2px 12px; gap: 4px; }
@@ -182,8 +191,9 @@
     <div id="money-add" class="subview active">
       <div class="card">
         <div class="card-title"><span class="badge" id="icon-money"></span><h2 id="m-form-title">新增記帳</h2></div>
-        <div id="m-editing-note" class="hidden" style="font-size:12.5px;color:var(--accent);margin-bottom:10px;">
-          正在編輯既有資料　<button type="button" class="refresh-btn" onclick="cancelEditExpense()">取消編輯</button>
+        <div id="m-editing-note" class="editing-note hidden">
+          <span>✎ 正在編輯這筆記帳</span>
+          <button type="button" onclick="cancelEditExpense()">返回，不編輯</button>
         </div>
         <label>付款人</label>
         <div class="btn-row" id="payerGroup">
@@ -249,8 +259,9 @@
     <div id="trip-add" class="subview active">
       <div class="card">
         <div class="card-title"><span class="badge" id="icon-calendar"></span><h2 id="t-form-title">新增行程</h2></div>
-        <div id="t-editing-note" class="hidden" style="font-size:12.5px;color:var(--accent);margin-bottom:10px;">
-          正在編輯既有資料　<button type="button" class="refresh-btn" onclick="cancelEditItinerary()">取消編輯</button>
+        <div id="t-editing-note" class="editing-note hidden">
+          <span>✎ 正在編輯這筆行程</span>
+          <button type="button" onclick="cancelEditItinerary()">返回，不編輯</button>
         </div>
         <label>地點</label>
         <input type="text" id="t-location" placeholder="例：黑門市場">
@@ -263,6 +274,9 @@
 
         <label>地區（選填，需與設定分頁的地區名稱一致）</label>
         <input type="text" id="t-region" placeholder="例：京都">
+
+        <label>Google Map連結（選填）</label>
+        <input type="text" id="t-map" placeholder="貼上地圖連結網址">
 
         <button class="primary-btn" id="t-submitBtn" onclick="submitItinerary()">送出行程</button>
         <div id="t-resultBox"></div>
@@ -295,8 +309,9 @@
     <div id="shop-add" class="subview active">
       <div class="card">
         <div class="card-title"><span class="badge" id="icon-bag"></span><h2 id="s-form-title">加入購物清單</h2></div>
-        <div id="s-editing-note" class="hidden" style="font-size:12.5px;color:var(--accent);margin-bottom:10px;">
-          正在編輯既有品項　<button type="button" class="refresh-btn" onclick="cancelEditShopping()">取消編輯</button>
+        <div id="s-editing-note" class="editing-note hidden">
+          <span>✎ 正在編輯這個品項</span>
+          <button type="button" onclick="cancelEditShopping()">返回，不編輯</button>
         </div>
         <label>物品</label>
         <input type="text" id="s-item" placeholder="例：面膜">
@@ -420,15 +435,16 @@
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.view).classList.add('active');
+    try { localStorage.setItem('tripdog_activeTab', btn.dataset.view); } catch (e) {}
   }
 
-  function switchSub(group, mode) {
-    document.querySelectorAll('#view-' + (group === 'money' ? 'money' : group === 'trip' ? 'trip' : 'shop') + ' .subtabs button')
-      .forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+  function switchSub(group, mode, skipLoad) {
+    document.querySelectorAll('#view-' + group + ' .subtabs button')
+      .forEach((b, i) => b.classList.toggle('active', (mode === 'add' && i === 0) || (mode === 'view' && i === 1)));
     document.getElementById(group + '-add').classList.toggle('active', mode === 'add');
     document.getElementById(group + '-view').classList.toggle('active', mode === 'view');
-    if (mode === 'view') {
+    try { localStorage.setItem('tripdog_subtab_' + group, mode); } catch (e) {}
+    if (mode === 'view' && !skipLoad) {
       if (group === 'money') { loadSettlement(); loadRecentAccounting(); }
       if (group === 'trip') { loadItineraryStructured(); }
       if (group === 'shop') { loadShoppingStructured(); }
@@ -622,9 +638,7 @@
   }
 
   function switchToAddSubtab(group) {
-    document.querySelectorAll('#view-' + group + ' .subtabs button').forEach((b, i) => b.classList.toggle('active', i === 0));
-    document.getElementById(group + '-add').classList.add('active');
-    document.getElementById(group + '-view').classList.remove('active');
+    switchSub(group, 'add', true);
   }
 
   function loadRecentAccounting() {
@@ -656,6 +670,7 @@
     const date = document.getElementById('t-date').value.trim();
     const time = document.getElementById('t-time').value.trim();
     const region = document.getElementById('t-region').value.trim();
+    const map = document.getElementById('t-map').value.trim();
     if (!location) { showResult('t-resultBox', { ok: false, message: '請填寫地點' }); return; }
 
     const btn = document.getElementById('t-submitBtn');
@@ -663,7 +678,7 @@
     btn.disabled = true; btn.textContent = isEditing ? '更新中...' : '送出中...';
 
     const action = isEditing ? 'updateItinerary' : 'addItinerary';
-    const params = { action, location, date, time, region };
+    const params = { action, location, date, time, region, map };
     if (isEditing) params.row = editingItineraryRow;
 
     jsonp(params)
@@ -678,6 +693,7 @@
             document.getElementById('t-date').value = '';
             document.getElementById('t-time').value = '';
             document.getElementById('t-region').value = '';
+            document.getElementById('t-map').value = '';
           }
         }
         btn.disabled = false; btn.textContent = editingItineraryRow !== null ? '更新行程' : '送出行程';
@@ -699,6 +715,7 @@
     document.getElementById('t-date').value = it.date || '';
     document.getElementById('t-time').value = it.time || '';
     document.getElementById('t-region').value = it.region || '';
+    document.getElementById('t-map').value = it.map || '';
 
     document.getElementById('t-form-title').textContent = '編輯行程';
     document.getElementById('t-editing-note').classList.remove('hidden');
@@ -715,6 +732,7 @@
     document.getElementById('t-date').value = '';
     document.getElementById('t-time').value = '';
     document.getElementById('t-region').value = '';
+    document.getElementById('t-map').value = '';
     document.getElementById('t-form-title').textContent = '新增行程';
     document.getElementById('t-editing-note').classList.add('hidden');
     document.getElementById('t-submitBtn').textContent = '送出行程';
@@ -723,7 +741,7 @@
 
   /* ---------- 行程：查看 ---------- */
   function renderStop(s, dayDate) {
-    itineraryCache[s.row] = { location: s.location, date: dayDate || '', time: s.time || '', region: s.region || '' };
+    itineraryCache[s.row] = { location: s.location, date: dayDate || '', time: s.time || '', region: s.region || '', map: s.map || '' };
     const details = [];
     if (s.address) details.push('📍 ' + esc(s.address));
     if (s.map) details.push('<a href="' + esc(s.map) + '" target="_blank" rel="noopener">地圖連結</a>');
@@ -771,7 +789,7 @@
       document.getElementById('itineraryUnscheduled').innerHTML = res.unscheduledGroups.map(g =>
         '<div class="day-group"><div class="day-header">' + esc(g.region) + '</div>' +
         '<div class="chip-wrap">' + g.items.map(it => {
-          itineraryCache[it.row] = { location: it.location, date: '', time: '', region: g.region === '未分類地區' ? '' : g.region };
+          itineraryCache[it.row] = { location: it.location, date: '', time: '', region: g.region === '未分類地區' ? '' : g.region, map: it.map || '' };
           return '<span class="unscheduled-chip-wrap">' + (it.map
             ? '<a class="unscheduled-chip" href="' + esc(it.map) + '" target="_blank" rel="noopener">' + esc(it.location) + '</a>'
             : '<span class="unscheduled-chip">' + esc(it.location) + '</span>') +
@@ -935,6 +953,21 @@
   }
 
   mountIcons();
+
+  // 還原上次停留的分頁／子頁籤，避免每次重新整理都跳回記帳新增頁
+  (function restoreLastTab() {
+    try {
+      const lastTab = localStorage.getItem('tripdog_activeTab');
+      if (lastTab) {
+        const tabBtn = document.querySelector('nav.tabbar button[data-view="' + lastTab + '"]');
+        if (tabBtn) switchTab(tabBtn);
+      }
+      ['money', 'trip', 'shop'].forEach(group => {
+        const lastSub = localStorage.getItem('tripdog_subtab_' + group);
+        if (lastSub === 'view') switchSub(group, 'view');
+      });
+    } catch (e) {}
+  })();
 </script>
 </body>
 </html>
