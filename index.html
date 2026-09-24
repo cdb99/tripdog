@@ -24,9 +24,9 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
-    margin: 0; background: var(--paper); color: var(--ink); font-size: 15.5px; font-weight: 500;
+    margin: 0; background: var(--paper); color: var(--ink); font-size: 16.5px; font-weight: 500;
     padding: 18px; padding-top: calc(18px + env(safe-area-inset-top));
-    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
   }
 
   header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px; }
@@ -39,13 +39,13 @@
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 18px; margin-bottom: 16px; }
   .card-title { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
   .badge {
-    width: 36px; height: 36px; min-width: 36px; border-radius: 50%; background: var(--accent-soft);
+    width: 40px; height: 40px; min-width: 40px; border-radius: 50%; background: var(--accent-soft);
     color: var(--accent); display: flex; align-items: center; justify-content: center;
   }
-  .badge svg { width: 20px; height: 20px; display: block; }
-  .card-title h2 { font-size: 16.5px; margin: 0; font-weight: 700; letter-spacing: 0.03em; color: var(--ink); }
+  .badge svg { width: 22px; height: 22px; display: block; }
+  .card-title h2 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: 0.03em; color: var(--ink); }
 
-  label { display: block; font-size: 13.5px; color: var(--muted); margin: 14px 0 6px; letter-spacing: 0.02em; font-weight: 500; }
+  label { display: block; font-size: 14.5px; color: var(--muted); margin: 14px 0 6px; letter-spacing: 0.02em; font-weight: 500; }
   input[type=text], input[type=number] {
     width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 3px;
     font-size: 16px; background: #fff; color: var(--ink); font-family: inherit;
@@ -55,13 +55,13 @@
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-row button {
     flex: 1; min-width: 70px; padding: 9px 6px; border: 1px solid var(--line); border-radius: 3px;
-    background: #fff; font-size: 14.5px; color: var(--muted); font-family: inherit; font-weight: 500;
+    background: #fff; font-size: 15.5px; color: var(--muted); font-family: inherit; font-weight: 500;
   }
   .btn-row button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 500; }
 
   .primary-btn {
     width: 100%; padding: 13px; margin-top: 18px; background: var(--accent); color: #faf8f2;
-    border: none; border-radius: 3px; font-size: 15.5px; letter-spacing: 0.06em; font-family: inherit; font-weight: 700;
+    border: none; border-radius: 3px; font-size: 16.5px; letter-spacing: 0.06em; font-family: inherit; font-weight: 700;
   }
   .primary-btn:disabled { background: #b6ae9d; }
 
@@ -94,15 +94,15 @@
     display: flex;
   }
   nav.tabbar button {
-    flex: 1; border: none; background: none; padding: 11px 4px 9px;
-    font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 5px;
-    font-family: inherit; letter-spacing: 0.02em; font-weight: 600;
+    flex: 1; border: none; background: none; padding: 12px 4px 10px;
+    font-size: 14px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-family: inherit; letter-spacing: 0.02em; font-weight: 700;
   }
   nav.tabbar .tab-badge {
-    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
     border: 1px solid var(--line); color: var(--muted);
   }
-  nav.tabbar .tab-badge svg { width: 17px; height: 17px; display: block; }
+  nav.tabbar .tab-badge svg { width: 21px; height: 21px; display: block; }
   nav.tabbar button.active { color: var(--accent); font-weight: 500; }
   nav.tabbar button.active .tab-badge { background: var(--accent); color: #faf8f2; border-color: var(--accent); }
 
@@ -118,7 +118,7 @@
   .day-group:last-child { margin-bottom: 0; }
   .day-header {
     display: flex; align-items: center; gap: 8px; font-family: "Noto Serif TC", serif;
-    font-weight: 700; font-size: 16px; color: var(--accent); margin-bottom: 8px;
+    font-weight: 700; font-size: 17.5px; color: var(--accent); margin-bottom: 8px;
     padding-bottom: 6px; border-bottom: 1px solid var(--line);
   }
   .stop-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
@@ -128,7 +128,7 @@
   }
   .stop-time.empty { color: #c7bfa8; }
   .stop-main { flex: 1; }
-  .stop-loc { font-size: 15.5px; color: var(--ink); font-weight: 500; }
+  .stop-loc { font-size: 16.5px; color: var(--ink); font-weight: 500; }
   .stop-detail { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
   .stop-detail a { color: var(--accent); }
   .empty-note { font-size: 14.5px; color: var(--muted); padding: 6px 0; }
@@ -248,7 +248,10 @@
 
     <div id="trip-add" class="subview active">
       <div class="card">
-        <div class="card-title"><span class="badge" id="icon-calendar"></span><h2>新增行程</h2></div>
+        <div class="card-title"><span class="badge" id="icon-calendar"></span><h2 id="t-form-title">新增行程</h2></div>
+        <div id="t-editing-note" class="hidden" style="font-size:12.5px;color:var(--accent);margin-bottom:10px;">
+          正在編輯既有資料　<button type="button" class="refresh-btn" onclick="cancelEditItinerary()">取消編輯</button>
+        </div>
         <label>地點</label>
         <input type="text" id="t-location" placeholder="例：黑門市場">
 
@@ -291,7 +294,10 @@
 
     <div id="shop-add" class="subview active">
       <div class="card">
-        <div class="card-title"><span class="badge" id="icon-bag"></span><h2>加入購物清單</h2></div>
+        <div class="card-title"><span class="badge" id="icon-bag"></span><h2 id="s-form-title">加入購物清單</h2></div>
+        <div id="s-editing-note" class="hidden" style="font-size:12.5px;color:var(--accent);margin-bottom:10px;">
+          正在編輯既有品項　<button type="button" class="refresh-btn" onclick="cancelEditShopping()">取消編輯</button>
+        </div>
         <label>物品</label>
         <input type="text" id="s-item" placeholder="例：面膜">
 
@@ -504,10 +510,10 @@
       .then(res => {
         showResult('m-resultBox', res);
         if (res.ok) {
+          if (res.settlement) document.getElementById('settlementBox').innerHTML = renderSettlement(res.settlement);
+          if (res.recent) document.getElementById('recentBox').innerHTML = renderRecentAccounting(res.recent);
           if (isEditing) {
             cancelEditExpense();
-            loadRecentAccounting();
-            loadSettlement();
           } else {
             document.getElementById('m-item').value = '';
             document.getElementById('m-amount').value = '';
@@ -566,7 +572,11 @@
   function deleteAccountingRow(row) {
     if (!confirm('確定要刪除這筆記帳資料嗎？')) return;
     jsonp({ action: 'deleteAccountingRow', row: row })
-      .then(res => { loadRecentAccounting(); loadSettlement(); })
+      .then(res => {
+        if (res.settlement) document.getElementById('settlementBox').innerHTML = renderSettlement(res.settlement);
+        if (res.recent) document.getElementById('recentBox').innerHTML = renderRecentAccounting(res.recent);
+        if (!res.ok) alert(res.message);
+      })
       .catch(err => { alert('刪除失敗：' + err.message); });
   }
 
@@ -639,6 +649,8 @@
   }
 
   /* ---------- 行程：新增 ---------- */
+  let editingItineraryRow = null;
+
   function submitItinerary() {
     const location = document.getElementById('t-location').value.trim();
     const date = document.getElementById('t-date').value.trim();
@@ -647,24 +659,71 @@
     if (!location) { showResult('t-resultBox', { ok: false, message: '請填寫地點' }); return; }
 
     const btn = document.getElementById('t-submitBtn');
-    btn.disabled = true; btn.textContent = '送出中...';
+    const isEditing = editingItineraryRow !== null;
+    btn.disabled = true; btn.textContent = isEditing ? '更新中...' : '送出中...';
 
-    jsonp({ action: 'addItinerary', location, date, time, region })
+    const action = isEditing ? 'updateItinerary' : 'addItinerary';
+    const params = { action, location, date, time, region };
+    if (isEditing) params.row = editingItineraryRow;
+
+    jsonp(params)
       .then(res => {
-        btn.disabled = false; btn.textContent = '送出行程';
         showResult('t-resultBox', res);
         if (res.ok) {
-          document.getElementById('t-location').value = '';
-          document.getElementById('t-date').value = '';
-          document.getElementById('t-time').value = '';
-          document.getElementById('t-region').value = '';
+          if (res.itinerary) renderItinerary(res.itinerary);
+          if (isEditing) {
+            cancelEditItinerary();
+          } else {
+            document.getElementById('t-location').value = '';
+            document.getElementById('t-date').value = '';
+            document.getElementById('t-time').value = '';
+            document.getElementById('t-region').value = '';
+          }
         }
+        btn.disabled = false; btn.textContent = editingItineraryRow !== null ? '更新行程' : '送出行程';
       })
-      .catch(err => { btn.disabled = false; btn.textContent = '送出行程'; showError('t-resultBox', err); });
+      .catch(err => {
+        btn.disabled = false; btn.textContent = isEditing ? '更新行程' : '送出行程';
+        showError('t-resultBox', err);
+      });
+  }
+
+  let itineraryCache = {};
+
+  function startEditItinerary(row) {
+    const it = itineraryCache[row];
+    if (!it) { alert('找不到這筆資料，請重新整理清單'); return; }
+    editingItineraryRow = row;
+
+    document.getElementById('t-location').value = it.location;
+    document.getElementById('t-date').value = it.date || '';
+    document.getElementById('t-time').value = it.time || '';
+    document.getElementById('t-region').value = it.region || '';
+
+    document.getElementById('t-form-title').textContent = '編輯行程';
+    document.getElementById('t-editing-note').classList.remove('hidden');
+    document.getElementById('t-submitBtn').textContent = '更新行程';
+    document.getElementById('t-resultBox').innerHTML = '';
+
+    switchToAddSubtab('trip');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelEditItinerary() {
+    editingItineraryRow = null;
+    document.getElementById('t-location').value = '';
+    document.getElementById('t-date').value = '';
+    document.getElementById('t-time').value = '';
+    document.getElementById('t-region').value = '';
+    document.getElementById('t-form-title').textContent = '新增行程';
+    document.getElementById('t-editing-note').classList.add('hidden');
+    document.getElementById('t-submitBtn').textContent = '送出行程';
+    document.getElementById('t-resultBox').innerHTML = '';
   }
 
   /* ---------- 行程：查看 ---------- */
-  function renderStop(s) {
+  function renderStop(s, dayDate) {
+    itineraryCache[s.row] = { location: s.location, date: dayDate || '', time: s.time || '', region: s.region || '' };
     const details = [];
     if (s.address) details.push('📍 ' + esc(s.address));
     if (s.map) details.push('<a href="' + esc(s.map) + '" target="_blank" rel="noopener">地圖連結</a>');
@@ -676,6 +735,7 @@
       : '<div class="stop-time empty">・</div>';
     return '<div class="stop-row">' + timeHtml +
       '<div class="stop-row-inner"><div class="stop-main"><div class="stop-loc">' + esc(s.location) + '</div>' + detailHtml + '</div>' +
+      '<button class="del-btn" onclick="startEditItinerary(' + s.row + ')">' + ICONS.edit + '</button>' +
       '<button class="del-btn" onclick="deleteItineraryRow(' + s.row + ')">' + ICONS.trash + '</button>' +
       '</div></div>';
   }
@@ -683,65 +743,113 @@
   function deleteItineraryRow(row) {
     if (!confirm('確定要刪除這筆行程嗎？')) return;
     jsonp({ action: 'deleteItineraryRow', row: row })
-      .then(res => { loadItineraryStructured(); })
+      .then(res => {
+        if (res.itinerary) renderItinerary(res.itinerary);
+        if (!res.ok) alert(res.message);
+      })
       .catch(err => { alert('刪除失敗：' + err.message); });
+  }
+
+  function renderItinerary(res) {
+    if (!res.ok) {
+      document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">' + esc(res.message) + '</p>';
+      return;
+    }
+    itineraryCache = {};
+    if (!res.days || res.days.length === 0) {
+      document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">目前還沒有已排定日期的行程。</p>';
+    } else {
+      document.getElementById('itineraryDays').innerHTML = res.days.map(day =>
+        '<div class="day-group"><div class="day-header">' + esc(day.date) + '</div>' +
+        day.stops.map(s => renderStop(s, day.date)).join('') + '</div>'
+      ).join('');
+    }
+
+    if (!res.unscheduledGroups || res.unscheduledGroups.length === 0) {
+      document.getElementById('itineraryUnscheduled').innerHTML = '<p class="empty-note">目前沒有尚未安排的地點。</p>';
+    } else {
+      document.getElementById('itineraryUnscheduled').innerHTML = res.unscheduledGroups.map(g =>
+        '<div class="day-group"><div class="day-header">' + esc(g.region) + '</div>' +
+        '<div class="chip-wrap">' + g.items.map(it => {
+          itineraryCache[it.row] = { location: it.location, date: '', time: '', region: g.region === '未分類地區' ? '' : g.region };
+          return '<span class="unscheduled-chip-wrap">' + (it.map
+            ? '<a class="unscheduled-chip" href="' + esc(it.map) + '" target="_blank" rel="noopener">' + esc(it.location) + '</a>'
+            : '<span class="unscheduled-chip">' + esc(it.location) + '</span>') +
+          '<button class="del-btn" onclick="startEditItinerary(' + it.row + ')">' + ICONS.edit + '</button>' +
+          '<button class="del-btn" onclick="deleteItineraryRow(' + it.row + ')">' + ICONS.trash + '</button></span>';
+        }).join('') + '</div></div>'
+      ).join('');
+    }
   }
 
   function loadItineraryStructured() {
     document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">載入中...</p>';
     document.getElementById('itineraryUnscheduled').innerHTML = '<p class="empty-note">載入中...</p>';
 
-    jsonp({ action: 'getItineraryStructured' }).then(res => {
-      if (!res.ok) {
-        document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">' + esc(res.message) + '</p>';
-        return;
-      }
-      if (!res.days || res.days.length === 0) {
-        document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">目前還沒有已排定日期的行程。</p>';
-      } else {
-        document.getElementById('itineraryDays').innerHTML = res.days.map(day =>
-          '<div class="day-group"><div class="day-header">' + esc(day.date) + '</div>' +
-          day.stops.map(renderStop).join('') + '</div>'
-        ).join('');
-      }
-
-      if (!res.unscheduledGroups || res.unscheduledGroups.length === 0) {
-        document.getElementById('itineraryUnscheduled').innerHTML = '<p class="empty-note">目前沒有尚未安排的地點。</p>';
-      } else {
-        document.getElementById('itineraryUnscheduled').innerHTML = res.unscheduledGroups.map(g =>
-          '<div class="day-group"><div class="day-header">' + esc(g.region) + '</div>' +
-          '<div class="chip-wrap">' + g.items.map(it =>
-            '<span class="unscheduled-chip-wrap">' + (it.map
-              ? '<a class="unscheduled-chip" href="' + esc(it.map) + '" target="_blank" rel="noopener">' + esc(it.location) + '</a>'
-              : '<span class="unscheduled-chip">' + esc(it.location) + '</span>') +
-            '<button class="del-btn" onclick="deleteItineraryRow(' + it.row + ')">' + ICONS.trash + '</button></span>'
-          ).join('') + '</div></div>'
-        ).join('');
-      }
-    }).catch(err => {
-      document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>';
-    });
+    jsonp({ action: 'getItineraryStructured' })
+      .then(renderItinerary)
+      .catch(err => {
+        document.getElementById('itineraryDays').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>';
+      });
   }
 
   /* ---------- 購物：新增 ---------- */
+  let editingShoppingName = null;
+
   function submitShopping() {
     const item = document.getElementById('s-item').value.trim();
     const date = document.getElementById('s-date').value.trim();
     if (!item) { showResult('s-resultBox', { ok: false, message: '請填寫物品名稱' }); return; }
 
     const btn = document.getElementById('s-submitBtn');
-    btn.disabled = true; btn.textContent = '送出中...';
+    const isEditing = editingShoppingName !== null;
+    btn.disabled = true; btn.textContent = isEditing ? '更新中...' : '送出中...';
 
-    jsonp({ action: 'addShopping', item, date })
+    const action = isEditing ? 'updateShoppingItem' : 'addShopping';
+    const params = isEditing
+      ? { action, oldItem: editingShoppingName, newItem: item, date }
+      : { action, item, date };
+
+    jsonp(params)
       .then(res => {
-        btn.disabled = false; btn.textContent = '加入清單';
         showResult('s-resultBox', res);
         if (res.ok) {
-          document.getElementById('s-item').value = '';
-          document.getElementById('s-date').value = '';
+          if (res.shopping) document.getElementById('shoppingBox').innerHTML = renderShopping(res.shopping);
+          if (isEditing) {
+            cancelEditShopping();
+          } else {
+            document.getElementById('s-item').value = '';
+            document.getElementById('s-date').value = '';
+          }
         }
+        btn.disabled = false; btn.textContent = editingShoppingName !== null ? '更新品項' : '加入清單';
       })
-      .catch(err => { btn.disabled = false; btn.textContent = '加入清單'; showError('s-resultBox', err); });
+      .catch(err => {
+        btn.disabled = false; btn.textContent = isEditing ? '更新品項' : '加入清單';
+        showError('s-resultBox', err);
+      });
+  }
+
+  function startEditShopping(name) {
+    editingShoppingName = name;
+    document.getElementById('s-item').value = name;
+    document.getElementById('s-date').value = '';
+    document.getElementById('s-form-title').textContent = '編輯品項';
+    document.getElementById('s-editing-note').classList.remove('hidden');
+    document.getElementById('s-submitBtn').textContent = '更新品項';
+    document.getElementById('s-resultBox').innerHTML = '';
+    switchToAddSubtab('shop');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelEditShopping() {
+    editingShoppingName = null;
+    document.getElementById('s-item').value = '';
+    document.getElementById('s-date').value = '';
+    document.getElementById('s-form-title').textContent = '加入購物清單';
+    document.getElementById('s-editing-note').classList.add('hidden');
+    document.getElementById('s-submitBtn').textContent = '加入清單';
+    document.getElementById('s-resultBox').innerHTML = '';
   }
 
   function submitBought() {
@@ -755,7 +863,10 @@
       .then(res => {
         btn.disabled = false; btn.textContent = '標記已買';
         showResult('s-boughtResultBox', res);
-        if (res.ok) { document.getElementById('s-boughtItem').value = ''; }
+        if (res.ok) {
+          document.getElementById('s-boughtItem').value = '';
+          if (res.shopping) document.getElementById('shoppingBox').innerHTML = renderShopping(res.shopping);
+        }
       })
       .catch(err => { btn.disabled = false; btn.textContent = '標記已買'; showError('s-boughtResultBox', err); });
   }
@@ -777,6 +888,7 @@
           document.getElementById('s-cItem').value = '';
           document.getElementById('s-vendor').value = '';
           document.getElementById('s-price').value = '';
+          if (res.shopping) document.getElementById('shoppingBox').innerHTML = renderShopping(res.shopping);
         }
       })
       .catch(err => { btn.disabled = false; btn.textContent = '記錄比價'; showError('s-priceResultBox', err); });
@@ -784,8 +896,10 @@
 
   /* ---------- 購物：查看 ---------- */
   function shoppingRow(name) {
+    const safeName = esc(name).replace(/'/g, "\\'");
     return '<div class="stop-row"><div class="stop-row-inner"><div class="stop-main"><div class="stop-loc">' + esc(name) + '</div></div>' +
-      '<button class="del-btn" onclick="deleteShoppingItem(\'' + esc(name).replace(/'/g, "\\'") + '\')">' + ICONS.trash + '</button></div></div>';
+      '<button class="del-btn" onclick="startEditShopping(\'' + safeName + '\')">' + ICONS.edit + '</button>' +
+      '<button class="del-btn" onclick="deleteShoppingItem(\'' + safeName + '\')">' + ICONS.trash + '</button></div></div>';
   }
   function renderShopping(res) {
     if (!res.ok) return '<p class="empty-note">' + esc(res.message) + '</p>';
@@ -806,7 +920,10 @@
   function deleteShoppingItem(item) {
     if (!confirm('確定要刪除「' + item + '」嗎？（同名的所有比價記錄也會一起刪除）')) return;
     jsonp({ action: 'deleteShoppingItem', item: item })
-      .then(res => { loadShoppingStructured(); })
+      .then(res => {
+        if (res.shopping) document.getElementById('shoppingBox').innerHTML = renderShopping(res.shopping);
+        if (!res.ok) alert(res.message);
+      })
       .catch(err => { alert('刪除失敗：' + err.message); });
   }
 
