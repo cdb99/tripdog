@@ -454,9 +454,10 @@
     document.getElementById(group + '-view').classList.toggle('active', mode === 'view');
     try { localStorage.setItem('tripdog_subtab_' + group, mode); } catch (e) {}
     if (mode === 'view' && !skipLoad) {
-      if (group === 'money') { loadSettlement(); loadRecentAccounting(); }
+      // 依序載入，不要同時發出多個請求，避免 Apps Script 端塞車逾時
+      if (group === 'money') { loadSettlement().then(loadRecentAccounting); }
       if (group === 'trip') { loadItineraryStructured(); }
-      if (group === 'shop') { loadShoppingStructured(); loadPriceCompare(); }
+      if (group === 'shop') { loadShoppingStructured().then(loadPriceCompare); }
     }
   }
 
@@ -570,7 +571,7 @@
 
   function loadSettlement() {
     document.getElementById('settlementBox').innerHTML = '<p class="empty-note">載入中...</p>';
-    jsonp({ action: 'getSettlementStructured' })
+    return jsonp({ action: 'getSettlementStructured' })
       .then(res => { document.getElementById('settlementBox').innerHTML = renderSettlement(res); })
       .catch(err => { document.getElementById('settlementBox').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>'; });
   }
@@ -962,7 +963,7 @@
 
   function loadShoppingStructured() {
     document.getElementById('shoppingBox').innerHTML = '<p class="empty-note">載入中...</p>';
-    jsonp({ action: 'getShoppingStructured' })
+    return jsonp({ action: 'getShoppingStructured' })
       .then(res => { document.getElementById('shoppingBox').innerHTML = renderShopping(res); })
       .catch(err => { document.getElementById('shoppingBox').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>'; });
   }
@@ -1002,17 +1003,20 @@
   mountIcons();
 
   // 還原上次停留的分頁／子頁籤，避免每次重新整理都跳回記帳新增頁
+  // 只還原「目前這個分頁」的查看狀態，不要把三個分頁的資料都背景抓一次，避免同時發太多請求
   (function restoreLastTab() {
     try {
       const lastTab = localStorage.getItem('tripdog_activeTab');
+      let currentGroup = null;
       if (lastTab) {
         const tabBtn = document.querySelector('nav.tabbar button[data-view="' + lastTab + '"]');
         if (tabBtn) switchTab(tabBtn);
+        currentGroup = lastTab === 'view-money' ? 'money' : lastTab === 'view-trip' ? 'trip' : lastTab === 'view-shop' ? 'shop' : null;
       }
-      ['money', 'trip', 'shop'].forEach(group => {
-        const lastSub = localStorage.getItem('tripdog_subtab_' + group);
-        if (lastSub === 'view') switchSub(group, 'view');
-      });
+      if (currentGroup) {
+        const lastSub = localStorage.getItem('tripdog_subtab_' + currentGroup);
+        if (lastSub === 'view') switchSub(currentGroup, 'view');
+      }
     } catch (e) {}
   })();
 </script>
