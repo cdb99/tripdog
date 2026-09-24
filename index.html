@@ -158,6 +158,10 @@
     display: flex; align-items: center; justify-content: center; flex: none;
   }
   .del-btn svg { width: 16px; height: 16px; display: block; }
+  .cheapest-tag {
+    display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); padding: 2px 7px; border-radius: 20px; vertical-align: middle;
+  }
   .editing-note {
     display: flex; align-items: center; justify-content: space-between;
     background: var(--accent-soft); color: var(--accent); padding: 10px 14px;
@@ -976,7 +980,7 @@
       '<div class="day-group"><div class="day-header">' + esc(g.item) + (g.bought ? '（已買）' : '') + '</div>' +
       g.options.map((o, i) =>
         '<div class="stop-row"><div class="stop-row-inner"><div class="stop-main">' +
-        '<div class="stop-loc">' + (i === 0 ? '💰 ' : '') + esc(o.vendor) + '　￥' + esc(o.price) + '</div></div>' +
+        '<div class="stop-loc">' + esc(o.vendor) + '　￥' + esc(o.price) + (i === 0 && g.options.length > 1 ? ' <span class="cheapest-tag">最低價</span>' : '') + '</div></div>' +
         '<button class="del-btn" onclick="deletePriceCompareRow(' + o.row + ')">' + ICONS.trash + '</button>' +
         '</div></div>'
       ).join('') + '</div>'
