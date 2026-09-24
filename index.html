@@ -352,6 +352,14 @@
         </div>
         <div id="shoppingBox"><p class="empty-note">載入中...</p></div>
       </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><span class="badge" id="icon-compare2"></span><h2>比價結果</h2></div>
+          <button class="refresh-btn" onclick="loadPriceCompare()">重新整理</button>
+        </div>
+        <div id="priceCompareBox"><p class="empty-note">載入中...</p></div>
+      </div>
     </div>
   </section>
 
@@ -417,6 +425,7 @@
     document.getElementById('icon-bag').innerHTML = ICONS.bag;
     document.getElementById('icon-check').innerHTML = ICONS.check;
     document.getElementById('icon-compare').innerHTML = ICONS.compare;
+    document.getElementById('icon-compare2').innerHTML = ICONS.compare;
     document.getElementById('icon-cart').innerHTML = ICONS.cart;
     document.getElementById('icon-exchange').innerHTML = ICONS.exchange;
     document.getElementById('tab-money').innerHTML = ICONS.money;
@@ -447,7 +456,7 @@
     if (mode === 'view' && !skipLoad) {
       if (group === 'money') { loadSettlement(); loadRecentAccounting(); }
       if (group === 'trip') { loadItineraryStructured(); }
-      if (group === 'shop') { loadShoppingStructured(); }
+      if (group === 'shop') { loadShoppingStructured(); loadPriceCompare(); }
     }
   }
 
@@ -530,6 +539,7 @@
           if (res.recent) document.getElementById('recentBox').innerHTML = renderRecentAccounting(res.recent);
           if (isEditing) {
             cancelEditExpense();
+            switchSub('money', 'view', true);
           } else {
             document.getElementById('m-item').value = '';
             document.getElementById('m-amount').value = '';
@@ -688,6 +698,7 @@
           if (res.itinerary) renderItinerary(res.itinerary);
           if (isEditing) {
             cancelEditItinerary();
+            switchSub('trip', 'view', true);
           } else {
             document.getElementById('t-location').value = '';
             document.getElementById('t-date').value = '';
@@ -835,6 +846,7 @@
           if (res.shopping) document.getElementById('shoppingBox').innerHTML = renderShopping(res.shopping);
           if (isEditing) {
             cancelEditShopping();
+            switchSub('shop', 'view', true);
           } else {
             document.getElementById('s-item').value = '';
             document.getElementById('s-date').value = '';
@@ -884,6 +896,7 @@
         if (res.ok) {
           document.getElementById('s-boughtItem').value = '';
           if (res.shopping) document.getElementById('shoppingBox').innerHTML = renderShopping(res.shopping);
+          if (res.priceCompare) document.getElementById('priceCompareBox').innerHTML = renderPriceCompare(res.priceCompare);
         }
       })
       .catch(err => { btn.disabled = false; btn.textContent = '標記已買'; showError('s-boughtResultBox', err); });
@@ -907,6 +920,7 @@
           document.getElementById('s-vendor').value = '';
           document.getElementById('s-price').value = '';
           if (res.shopping) document.getElementById('shoppingBox').innerHTML = renderShopping(res.shopping);
+          if (res.priceCompare) document.getElementById('priceCompareBox').innerHTML = renderPriceCompare(res.priceCompare);
         }
       })
       .catch(err => { btn.disabled = false; btn.textContent = '記錄比價'; showError('s-priceResultBox', err); });
@@ -940,6 +954,7 @@
     jsonp({ action: 'deleteShoppingItem', item: item })
       .then(res => {
         if (res.shopping) document.getElementById('shoppingBox').innerHTML = renderShopping(res.shopping);
+        if (res.priceCompare) document.getElementById('priceCompareBox').innerHTML = renderPriceCompare(res.priceCompare);
         if (!res.ok) alert(res.message);
       })
       .catch(err => { alert('刪除失敗：' + err.message); });
@@ -950,6 +965,38 @@
     jsonp({ action: 'getShoppingStructured' })
       .then(res => { document.getElementById('shoppingBox').innerHTML = renderShopping(res); })
       .catch(err => { document.getElementById('shoppingBox').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>'; });
+  }
+
+  /* ---------- 比價結果 ---------- */
+  function renderPriceCompare(res) {
+    if (!res.ok) return '<p class="empty-note">' + esc(res.message) + '</p>';
+    if (!res.groups || res.groups.length === 0) return '<p class="empty-note">目前沒有比價記錄。</p>';
+    return res.groups.map(g =>
+      '<div class="day-group"><div class="day-header">' + esc(g.item) + (g.bought ? '（已買）' : '') + '</div>' +
+      g.options.map((o, i) =>
+        '<div class="stop-row"><div class="stop-row-inner"><div class="stop-main">' +
+        '<div class="stop-loc">' + (i === 0 ? '💰 ' : '') + esc(o.vendor) + '　￥' + esc(o.price) + '</div></div>' +
+        '<button class="del-btn" onclick="deletePriceCompareRow(' + o.row + ')">' + ICONS.trash + '</button>' +
+        '</div></div>'
+      ).join('') + '</div>'
+    ).join('');
+  }
+
+  function loadPriceCompare() {
+    document.getElementById('priceCompareBox').innerHTML = '<p class="empty-note">載入中...</p>';
+    jsonp({ action: 'getPriceCompareStructured' })
+      .then(res => { document.getElementById('priceCompareBox').innerHTML = renderPriceCompare(res); })
+      .catch(err => { document.getElementById('priceCompareBox').innerHTML = '<p class="empty-note">讀取失敗：' + esc(err.message) + '</p>'; });
+  }
+
+  function deletePriceCompareRow(row) {
+    if (!confirm('確定要刪除這筆比價記錄嗎？')) return;
+    jsonp({ action: 'deletePriceCompareRow', row: row })
+      .then(res => {
+        if (res.priceCompare) document.getElementById('priceCompareBox').innerHTML = renderPriceCompare(res.priceCompare);
+        if (!res.ok) alert(res.message);
+      })
+      .catch(err => { alert('刪除失敗：' + err.message); });
   }
 
   mountIcons();
