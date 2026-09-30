@@ -46,11 +46,12 @@
   .card-title h2 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: 0.03em; color: var(--ink); }
 
   label { display: block; font-size: 14.5px; color: var(--muted); margin: 14px 0 6px; letter-spacing: 0.02em; font-weight: 500; }
-  input[type=text], input[type=number] {
+  input[type=text], input[type=number], textarea {
     width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 3px;
     font-size: 16px; background: #fff; color: var(--ink); font-family: inherit;
   }
-  input:focus { outline: none; border-color: var(--accent); }
+  textarea { resize: vertical; }
+  input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-row button {
@@ -174,8 +175,11 @@
   .stop-row { align-items: flex-start; }
   .stop-row-inner { display: flex; flex: 1; justify-content: space-between; align-items: center; }
   .unscheduled-chip-wrap { display: inline-flex; align-items: center; background: var(--accent-soft); border-radius: 20px; padding: 2px 4px 2px 12px; gap: 4px; }
+  .unscheduled-chip-wrap.has-note { border-radius: 12px; align-items: flex-start; padding-top: 6px; padding-bottom: 6px; }
   .unscheduled-chip-wrap .unscheduled-chip { background: none; padding: 0; border-radius: 0; }
   .unscheduled-chip-wrap .del-btn { color: #a9776b; }
+  .chip-main { display: flex; flex-direction: column; }
+  .chip-note { font-size: 12.5px; color: var(--muted); margin-top: 3px; white-space: normal; max-width: 45vw; }
 
 </style>
 </head>
@@ -281,6 +285,9 @@
 
         <label>Google Map連結（選填）</label>
         <input type="text" id="t-map" placeholder="貼上地圖連結網址">
+
+        <label>備註（選填，例如：為什麼想去、要買什麼、門票資訊）</label>
+        <textarea id="t-note" placeholder="例：想吃這裡的和牛丼" rows="2"></textarea>
 
         <button class="primary-btn" id="t-submitBtn" onclick="submitItinerary()">送出行程</button>
         <div id="t-resultBox"></div>
@@ -500,11 +507,15 @@
     });
   }
 
-  // 失敗（逾時／連線失敗）自動重試一次，通常是 Apps Script 剛被喚醒比較慢，重試就會成功
+  // 失敗（逾時／連線失敗）自動重試一次，通常是 Apps Script 剛被喚醒比較慢，重試就會成功。
+  // 帶上同一個 reqId：就算第一次逾時後其實伺服器端還是默默把資料寫完了，重試也只會拿到
+  // 伺服器快取住的同一筆結果，不會把新增/更新/刪除又重複做一次。
   function jsonp(params) {
-    return jsonpOnce(params).catch(err => {
+    const reqId = 'r_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const withReqId = Object.assign({}, params, { reqId });
+    return jsonpOnce(withReqId).catch(err => {
       console.warn('第一次呼叫失敗，自動重試一次：', err.message);
-      return jsonpOnce(params).catch(err2 => {
+      return jsonpOnce(withReqId).catch(err2 => {
         throw new Error('連線逾時或失敗（已自動重試一次），請稍後再試');
       });
     });
@@ -686,6 +697,7 @@
     const time = document.getElementById('t-time').value.trim();
     const region = document.getElementById('t-region').value.trim();
     const map = document.getElementById('t-map').value.trim();
+    const note = document.getElementById('t-note').value.trim();
     if (!location) { showResult('t-resultBox', { ok: false, message: '請填寫地點' }); return; }
 
     const btn = document.getElementById('t-submitBtn');
@@ -693,7 +705,7 @@
     btn.disabled = true; btn.textContent = isEditing ? '更新中...' : '送出中...';
 
     const action = isEditing ? 'updateItinerary' : 'addItinerary';
-    const params = { action, location, date, time, region, map };
+    const params = { action, location, date, time, region, map, note };
     if (isEditing) params.row = editingItineraryRow;
 
     jsonp(params)
@@ -710,6 +722,7 @@
             document.getElementById('t-time').value = '';
             document.getElementById('t-region').value = '';
             document.getElementById('t-map').value = '';
+            document.getElementById('t-note').value = '';
           }
         }
         btn.disabled = false; btn.textContent = editingItineraryRow !== null ? '更新行程' : '送出行程';
@@ -732,6 +745,7 @@
     document.getElementById('t-time').value = it.time || '';
     document.getElementById('t-region').value = it.region || '';
     document.getElementById('t-map').value = it.map || '';
+    document.getElementById('t-note').value = it.note || '';
 
     document.getElementById('t-form-title').textContent = '編輯行程';
     document.getElementById('t-editing-note').classList.remove('hidden');
@@ -749,6 +763,7 @@
     document.getElementById('t-time').value = '';
     document.getElementById('t-region').value = '';
     document.getElementById('t-map').value = '';
+    document.getElementById('t-note').value = '';
     document.getElementById('t-form-title').textContent = '新增行程';
     document.getElementById('t-editing-note').classList.add('hidden');
     document.getElementById('t-submitBtn').textContent = '送出行程';
@@ -757,7 +772,7 @@
 
   /* ---------- 行程：查看 ---------- */
   function renderStop(s, dayDate) {
-    itineraryCache[s.row] = { location: s.location, date: dayDate || '', time: s.time || '', region: s.region || '', map: s.map || '' };
+    itineraryCache[s.row] = { location: s.location, date: dayDate || '', time: s.time || '', region: s.region || '', map: s.map || '', note: s.note || '' };
     const details = [];
     if (s.address) details.push('📍 ' + esc(s.address));
     if (s.map) details.push('<a href="' + esc(s.map) + '" target="_blank" rel="noopener">地圖連結</a>');
@@ -805,10 +820,13 @@
       document.getElementById('itineraryUnscheduled').innerHTML = res.unscheduledGroups.map(g =>
         '<div class="day-group"><div class="day-header">' + esc(g.region) + '</div>' +
         '<div class="chip-wrap">' + g.items.map(it => {
-          itineraryCache[it.row] = { location: it.location, date: '', time: '', region: g.region === '未分類地區' ? '' : g.region, map: it.map || '' };
-          return '<span class="unscheduled-chip-wrap">' + (it.map
+          itineraryCache[it.row] = { location: it.location, date: '', time: '', region: g.region === '未分類地區' ? '' : g.region, map: it.map || '', note: it.note || '' };
+          const noteHtml = it.note ? '<div class="chip-note">' + esc(it.note) + '</div>' : '';
+          return '<span class="unscheduled-chip-wrap' + (it.note ? ' has-note' : '') + '">' +
+          '<span class="chip-main">' + (it.map
             ? '<a class="unscheduled-chip" href="' + esc(it.map) + '" target="_blank" rel="noopener">' + esc(it.location) + '</a>'
             : '<span class="unscheduled-chip">' + esc(it.location) + '</span>') +
+          noteHtml + '</span>' +
           '<button class="del-btn" onclick="startEditItinerary(' + it.row + ')">' + ICONS.edit + '</button>' +
           '<button class="del-btn" onclick="deleteItineraryRow(' + it.row + ')">' + ICONS.trash + '</button></span>';
         }).join('') + '</div></div>'
