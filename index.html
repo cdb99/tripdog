@@ -350,6 +350,11 @@
         <input type="text" id="s-vendor" placeholder="例：大國藥妝">
         <label>價格</label>
         <input type="number" id="s-price" placeholder="例：500">
+        <label>幣別</label>
+        <div class="btn-row" id="s-currencyGroup">
+          <button type="button" class="active" data-val="日幣" onclick="selectCurrency(this)">日幣</button>
+          <button type="button" data-val="台幣" onclick="selectCurrency(this)">台幣</button>
+        </div>
         <button class="primary-btn" id="s-priceBtn" onclick="submitPriceCompare()">記錄比價</button>
         <div id="s-priceResultBox"></div>
       </div>
@@ -925,6 +930,13 @@
       .catch(err => { btn.disabled = false; btn.textContent = '標記已買'; showError('s-boughtResultBox', err); });
   }
 
+  let priceCompareCurrency = '日幣';
+  function selectCurrency(btn) {
+    priceCompareCurrency = btn.dataset.val;
+    document.querySelectorAll('#s-currencyGroup button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
   function submitPriceCompare() {
     const item = document.getElementById('s-cItem').value.trim();
     const vendor = document.getElementById('s-vendor').value.trim();
@@ -934,7 +946,7 @@
     const btn = document.getElementById('s-priceBtn');
     btn.disabled = true; btn.textContent = '送出中...';
 
-    jsonp({ action: 'addPriceCompare', item, vendor, price })
+    jsonp({ action: 'addPriceCompare', item, vendor, price, currency: priceCompareCurrency })
       .then(res => {
         btn.disabled = false; btn.textContent = '記錄比價';
         showResult('s-priceResultBox', res);
@@ -996,12 +1008,14 @@
     if (!res.groups || res.groups.length === 0) return '<p class="empty-note">目前沒有比價記錄。</p>';
     return res.groups.map(g =>
       '<div class="day-group"><div class="day-header">' + esc(g.item) + (g.bought ? '（已買）' : '') + '</div>' +
-      g.options.map((o, i) =>
-        '<div class="stop-row"><div class="stop-row-inner"><div class="stop-main">' +
-        '<div class="stop-loc">' + esc(o.vendor) + '　￥' + esc(o.price) + (i === 0 && g.options.length > 1 ? ' <span class="cheapest-tag">最低價</span>' : '') + '</div></div>' +
+      g.options.map((o, i) => {
+        const symbol = o.currency === '台幣' ? 'NT$' : '￥';
+        const converted = (o.currency === '台幣' && res.exchangeRate) ? '　<span class="chip-note" style="display:inline">(≈￥' + esc(o.priceInJPY) + ')</span>' : '';
+        return '<div class="stop-row"><div class="stop-row-inner"><div class="stop-main">' +
+        '<div class="stop-loc">' + esc(o.vendor) + '　' + symbol + esc(o.price) + converted + (i === 0 && g.options.length > 1 ? ' <span class="cheapest-tag">最低價</span>' : '') + '</div></div>' +
         '<button class="del-btn" onclick="deletePriceCompareRow(' + o.row + ')">' + ICONS.trash + '</button>' +
-        '</div></div>'
-      ).join('') + '</div>'
+        '</div></div>';
+      }).join('') + '</div>'
     ).join('');
   }
 
